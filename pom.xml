@@ -7,7 +7,7 @@
     <version>1.0.1</version>
   </parent>
   <artifactId>fb-android</artifactId>
-  <version>1.0.1-SNAPSHOT</version>
+  <version>1.0.2-SNAPSHOT</version>
   <packaging>apklib</packaging>
 
   <properties>
@@ -22,15 +22,15 @@
   <dependencies>
 
     <dependency>
-      <groupId>${fb-libs.groupId}</groupId>
+      <groupId>${project.groupId}</groupId>
       <artifactId>fb-model</artifactId>
-      <version>1.0.1-SNAPSHOT</version>
+      <version>1.0.2-SNAPSHOT</version>
     </dependency>
 
     <dependency>
-      <groupId>${fb-libs.groupId}</groupId>
+      <groupId>${project.groupId}</groupId>
       <artifactId>fb-util</artifactId>
-      <version>1.0.1-SNAPSHOT</version>
+      <version>1.0.2-SNAPSHOT</version>
     </dependency>
 
     <!-- 3rd party _packaged_ dependencies, alpha by groupId/artifactId -->
@@ -44,11 +44,13 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
+      <version>${guava.version}</version>
     </dependency>
 
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-android</artifactId>
+      <version>${slf4j-android.version}</version>
     </dependency>
 
 
