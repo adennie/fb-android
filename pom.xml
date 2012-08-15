@@ -15,7 +15,7 @@
 
     <!-- dependency versions -->
     <android.version>4.0.3_r3</android.version>
-    <android-compat-v4.version>r8</android-compat-v4.version>
+    <android-compat-v4.version>r9</android-compat-v4.version>
 
   </properties>
 
@@ -39,6 +39,12 @@
       <groupId>android.support</groupId>
       <artifactId>compatibility-v4</artifactId>
       <version>${android-compat-v4.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.flurry</groupId>
+      <artifactId>flurry-sdk</artifactId>
+      <version>3.0.2</version>
     </dependency>
 
     <dependency>
