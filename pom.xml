@@ -7,7 +7,7 @@
     <version>1.0.1</version>
   </parent>
   <artifactId>fb-android</artifactId>
-  <version>1.0.3</version>
+  <version>1.0.4-SNAPSHOT</version>
   <packaging>apklib</packaging>
 
   <properties>
@@ -103,8 +103,4 @@
 
     </plugins>
   </build>
-
-  <scm>
-    <tag>v1.0.3</tag>
-  </scm>
 </project>
