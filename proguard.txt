@@ -8,3 +8,4 @@
 -include proguard-guava.txt
 -include proguard-java.txt
 -include proguard-flurry.txt
+-include proguard-admob.txt

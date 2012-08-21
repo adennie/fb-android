@@ -8,7 +8,7 @@ public interface AsyncTaskControllee {
     /**
      * Assigns an AsyncTaskController to an AsyncTaskControllee
      * 
-     * @param manager
+     * @param controller
      */
     public void setController(AsyncTaskController controller);
 
@@ -24,7 +24,6 @@ public interface AsyncTaskControllee {
     /**
      * Indicates whether the background job of an AsyncTaskHelper is currently executing
      * 
-     * @param task the AsyncTaskHelper to be checked
      * @return <code>true</code> if the task is currently executing, <code>false</code> otherwise.
      */
     public boolean isRunning();
@@ -32,7 +31,6 @@ public interface AsyncTaskControllee {
     /**
      * Cancels an AsyncTaskHelper's execution
      * 
-     * @param task the AsyncTaskHelper to be canceled
      */
     public void cancelTask();
 
