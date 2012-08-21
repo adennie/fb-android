@@ -7,3 +7,4 @@
 -include proguard-android.txt
 -include proguard-guava.txt
 -include proguard-java.txt
+-include proguard-flurry.txt
