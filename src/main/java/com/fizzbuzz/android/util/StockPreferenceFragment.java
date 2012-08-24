@@ -30,12 +30,8 @@ public class StockPreferenceFragment
         super.onCreate(savedInstanceState);
         mLogger.info("StockPreferenceFragment.onCreate: in fragment: {}", this);
 
-        int res = getActivity()
-                .getResources()
-                .getIdentifier(getArguments().getString("resource"),
-                        "xml",
-                        getActivity().getPackageName());
-
+        String fullyQualifiedResourceName = getArguments().getString("resource");
+        int res = getActivity().getResources().getIdentifier(fullyQualifiedResourceName, null, null);
         addPreferencesFromResource(res);
     }
 

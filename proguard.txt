@@ -1,9 +1,5 @@
--libraryjars C:/Users/Andy/Dev/SLF4J/slf4j-1.6.1/slf4j-android-1.6.1-RC1.jar
--libraryjars C:/Users/Andy/Dev/AndroidSDKTools/extras/android/compatibility/v4/android-support-v4.jar
--libraryjars C:/Users/Andy/Dev/AndroidSDKTools/platforms/android-15/android.jar
-
 #include standard configs for libraries used in this project
--basedirectory proguard_config
+-basedirectory ../../proguard_config
 -include proguard-android.txt
 -include proguard-guava.txt
 -include proguard-java.txt
