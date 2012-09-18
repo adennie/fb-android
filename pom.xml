@@ -14,7 +14,7 @@
     <android-target-sdk>15</android-target-sdk>
 
     <!-- dependency versions -->
-    <android.version>4.0.3_r3</android.version>
+    <android.version>4.1_r1</android.version>
     <android-compat-v4.version>r9</android-compat-v4.version>
 
   </properties>
