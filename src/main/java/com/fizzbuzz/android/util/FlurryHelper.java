@@ -1,62 +1,43 @@
 package com.fizzbuzz.android.util;
 
-import static com.google.common.base.Preconditions.checkState;
 import android.app.Activity;
 
 import com.flurry.android.FlurryAgent;
 
-public class FlurryHelper {
-    private Activity mActivity;
-    private final String mApiKey;
-    private final boolean mHandleUncaughtExceptions;
-    private final String mAppVersionName;
+/* Activities using this class MUST override onStart, onStop, onRestart, AND onDestroy and call the corresponding methods on this class */
+public class FlurryHelper
+        extends ActivityLifecycleListenerImpl {
+    private static String mApiKey;
 
-    public FlurryHelper(final Activity activity,
-            final String apiKey,
-            final boolean handleUncaughtExceptions,
-            final String appVersionName /* null OK */) {
-        mActivity = activity;
-        mApiKey = apiKey;
-        mHandleUncaughtExceptions = handleUncaughtExceptions;
-        mAppVersionName = appVersionName;
+    public FlurryHelper(Activity activity) {
+        super(activity);
 
-        FlurryAgent.setCaptureUncaughtExceptions(mHandleUncaughtExceptions);
+    }
 
-        if (mAppVersionName != null) {
-            FlurryAgent.setVersionName(mAppVersionName);
+    // call this once at application startup time
+    public static void initApp(String flurryApiKey,
+            final String appVersionName,
+            boolean handleUncaughtExceptions) {
+        mApiKey = flurryApiKey;
+
+        if (appVersionName != null) {
+            FlurryAgent.setVersionName(appVersionName);
         }
 
+        FlurryAgent.setCaptureUncaughtExceptions(handleUncaughtExceptions);
         FlurryAgent.setUseHttps(true);
-
     }
 
-    public FlurryHelper(final Activity activity,
-            final String apiKey,
-            final boolean handleUncaughtExceptions) {
-        this(activity, apiKey, handleUncaughtExceptions, null);
+    @Override
+    public void onStart() {
+        super.onStart();
+        FlurryAgent.onStartSession(getActivity(), mApiKey);
     }
 
-    public FlurryHelper(final Activity activity,
-            final String apiKey) {
-        this(activity, apiKey, false);
-    }
-
-    public void attachActivity(final Activity activity) {
-        mActivity = activity;
-    }
-
-    public void detachActivity() {
-        mActivity = null;
-    }
-
-    public void startSession() {
-        checkState(mActivity != null, "no activity attached");
-        FlurryAgent.onStartSession(mActivity, mApiKey);
-    }
-
-    public void endSession() {
-        checkState(mActivity != null, "no activity attached");
-        FlurryAgent.onEndSession(mActivity);
+    @Override
+    public void onStop() {
+        FlurryAgent.onEndSession(getActivity());
+        super.onStop();
     }
 
 }
