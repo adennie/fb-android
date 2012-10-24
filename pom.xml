@@ -19,7 +19,7 @@
     <!-- dependency versions -->
     <android.version>4.1_r1</android.version>
     <android-compat-v4.version>r9</android-compat-v4.version>
-    <socialize.version>2.5.6</socialize.version>
+    <socialize.version>2.6.1</socialize.version>
 
   </properties>
 
