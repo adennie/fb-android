@@ -1,15 +1,22 @@
 package com.fizzbuzz.android.util;
 
+import static com.fizzbuzz.android.util.VersionedStrictModeWrapper.Permission.ALLOW_DISK_READ;
+import static com.fizzbuzz.android.util.VersionedStrictModeWrapper.Permission.ALLOW_DISK_WRITE;
+
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.os.Build;
 import android.os.StrictMode;
 import android.os.StrictMode.ThreadPolicy;
 import android.os.StrictMode.VmPolicy;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 
 import com.fizzbuzz.android.util.VersionedStrictModeWrapper.StrictModeWrapper.ThreadPolicyWrapper;
 import com.fizzbuzz.android.util.VersionedStrictModeWrapper.StrictModeWrapper.VmPolicyWrapper;
@@ -58,11 +65,13 @@ public class VersionedStrictModeWrapper {
         return wrapper;
     }
 
-    static public void runWithStrictModeOverride(Permission perm, Runnable r) {
+    static public void runWithStrictModeOverride(Permission perm,
+            Runnable r) {
         runWithStrictModeOverride(EnumSet.of(perm), r);
     }
 
-    static public void runWithStrictModeOverride(Set<Permission> perms, Runnable r) {
+    static public void runWithStrictModeOverride(Set<Permission> perms,
+            Runnable r) {
         StrictModeWrapper strictMode = VersionedStrictModeWrapper.getInstance();
         ThreadPolicyWrapper origThreadPolicy = strictMode.getThreadPolicy();
 
@@ -81,11 +90,13 @@ public class VersionedStrictModeWrapper {
         }
     }
 
-    static public <T> T callWithStrictModeOverride(Permission perm, Callable<T> c) {
+    static public <T> T callWithStrictModeOverride(Permission perm,
+            Callable<T> c) {
         return callWithStrictModeOverride(EnumSet.of(perm), c);
     }
 
-    static public <T> T callWithStrictModeOverride(Set<Permission> perms, Callable<T> c) {
+    static public <T> T callWithStrictModeOverride(Set<Permission> perms,
+            Callable<T> c) {
         T result = null;
         StrictModeWrapper strictMode = VersionedStrictModeWrapper.getInstance();
         ThreadPolicyWrapper origThreadPolicy = strictMode.getThreadPolicy();
@@ -108,6 +119,24 @@ public class VersionedStrictModeWrapper {
             strictMode.restoreThreadPolicy(origThreadPolicy);
         }
         return result;
+    }
+
+    static public View inflateWithStrictModeOverride(final LayoutInflater inflater,
+            final int resId,
+            final ViewGroup container,
+            final boolean attachToRoot)
+    {
+        return VersionedStrictModeWrapper.callWithStrictModeOverride(
+                EnumSet.of(ALLOW_DISK_READ, ALLOW_DISK_WRITE),
+                new Callable<View>() {
+                    @Override
+                    public View call() {
+                        View result = inflater.inflate(resId,
+                                container,
+                                attachToRoot);
+                        return result;
+                    }
+                });
     }
 
     static class NoopStrictModeWrapper
@@ -150,9 +179,7 @@ public class VersionedStrictModeWrapper {
         }
     }
 
-    // TODO: uncomment @TargetApi when the following bug is fixed. Also re-enable lint check in this file.
-    // http://code.google.com/p/maven-android-plugin/issues/detail?id=287
-    // @TargetApi(9)
+    @TargetApi(9)
     static class GingerbreadStrictModeWrapper
             implements StrictModeWrapper {
         @Override
@@ -204,6 +231,7 @@ public class VersionedStrictModeWrapper {
     // TODO: uncomment @TargetApi when the following bug is fixed. Also re-enable lint check in this file.
     // http://code.google.com/p/maven-android-plugin/issues/detail?id=287
     // @TargetApi(9)
+    @TargetApi(9)
     static class GingerbreadThreadPolicyWrapper
             implements ThreadPolicyWrapper {
         private final ThreadPolicy mOrigPolicy;
@@ -219,7 +247,7 @@ public class VersionedStrictModeWrapper {
 
     // TODO: uncomment @TargetApi when the following bug is fixed. Also re-enable lint check in this file.
     // http://code.google.com/p/maven-android-plugin/issues/detail?id=287
-    // @TargetApi(9)
+    @TargetApi(9)
     static class GingerbreadVmPolicyWrapper
             implements VmPolicyWrapper {
         private final VmPolicy mOrigPolicy;
