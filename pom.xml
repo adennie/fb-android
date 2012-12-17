@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project
+  xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>com.fizzbuzz</groupId>
@@ -16,7 +19,8 @@
     <!-- dependency versions -->
     <android.version>4.1_r1</android.version>
     <android-compat-v4.version>r10</android-compat-v4.version>
-    <socialize.version>2.7.2</socialize.version>
+    <android-gcm.version>3</android-gcm.version>
+    <socialize.version>2.7.5</socialize.version>
 
   </properties>
 
@@ -41,6 +45,13 @@
       <artifactId>compatibility-v4</artifactId>
       <version>${android-compat-v4.version}</version>
     </dependency>
+
+    <dependency>
+      <groupId>com.google.android.gcm</groupId>
+      <artifactId>gcm-client</artifactId>
+      <version>${android-gcm.version}</version>
+    </dependency>
+
 
     <dependency>
       <groupId>com.flurry</groupId>

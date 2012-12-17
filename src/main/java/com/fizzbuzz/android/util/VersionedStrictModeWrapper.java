@@ -228,9 +228,6 @@ public class VersionedStrictModeWrapper {
         }
     }
 
-    // TODO: uncomment @TargetApi when the following bug is fixed. Also re-enable lint check in this file.
-    // http://code.google.com/p/maven-android-plugin/issues/detail?id=287
-    // @TargetApi(9)
     @TargetApi(9)
     static class GingerbreadThreadPolicyWrapper
             implements ThreadPolicyWrapper {
@@ -245,8 +242,6 @@ public class VersionedStrictModeWrapper {
         }
     }
 
-    // TODO: uncomment @TargetApi when the following bug is fixed. Also re-enable lint check in this file.
-    // http://code.google.com/p/maven-android-plugin/issues/detail?id=287
     @TargetApi(9)
     static class GingerbreadVmPolicyWrapper
             implements VmPolicyWrapper {
