@@ -14,10 +14,10 @@
   <packaging>apklib</packaging>
 
   <properties>
-    <android-target-sdk>15</android-target-sdk>
+    <android-target-sdk>17</android-target-sdk>
 
     <!-- dependency versions -->
-    <android.version>4.1_r1</android.version>
+    <android.version>4.2_r1</android.version>
     <android-compat-v4.version>r10</android-compat-v4.version>
     <android-gcm.version>3</android-gcm.version>
     <socialize.version>2.7.5</socialize.version>

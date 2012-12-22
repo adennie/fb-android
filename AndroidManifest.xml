@@ -2,6 +2,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="com.fizzbuzz.android.util">
     
-    <uses-sdk android:minSdkVersion="8" android:targetSdkVersion="15"/>
+    <uses-sdk android:minSdkVersion="8" android:targetSdkVersion="17"/>
     
 </manifest>
