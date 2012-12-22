@@ -1,8 +1,10 @@
 package com.fizzbuzz.android.async;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.os.AsyncTask;
+import android.os.Build;
 
 /**
  * AsyncTaskHelper is an extension of {@link AsyncTask} that
@@ -126,6 +128,14 @@ public class AsyncTaskHelper<Result>
         mProgressListener = progressListener; // may be null
         mProgressMessage1 = progressMessage1; // may be null
         mProgressMessage2 = progressMessage2; // may be null
+    }
+
+    @TargetApi(11)
+    public void execute() {
+        if (Build.VERSION.SDK_INT >= 11)
+            super.executeOnExecutor(THREAD_POOL_EXECUTOR);
+        else
+            super.execute();
     }
 
     public int getProgress() {
