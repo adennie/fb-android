@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 
 import android.content.Context;
 
-import com.fizzbuzz.android.util.LoggingManager;
 import com.socialize.Socialize;
 import com.socialize.entity.Entity;
 import com.socialize.error.SocializeException;

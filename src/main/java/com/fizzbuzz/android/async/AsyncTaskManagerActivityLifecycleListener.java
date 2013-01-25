@@ -4,7 +4,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import android.app.Activity;
 
-import com.fizzbuzz.android.activity.ActivityLifecycleListenerBase;
+import com.fizzbuzz.android.activity.AbstractActivityLifecycleListener;
 
 /*
  * This is a helper class to keep an AsyncTaskManager object synched up with the lifecycle of an Activity that (directly) uses it, usually via the
@@ -13,7 +13,7 @@ import com.fizzbuzz.android.activity.ActivityLifecycleListenerBase;
  */
 
 public class AsyncTaskManagerActivityLifecycleListener
-        extends ActivityLifecycleListenerBase {
+        extends AbstractActivityLifecycleListener {
 
     private final AsyncTaskManager mAsyncTaskManager;
 

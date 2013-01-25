@@ -54,11 +54,14 @@ public class EllipsizingTextView
         this(context, null);
     }
 
-    public EllipsizingTextView(Context context, AttributeSet attrs) {
+    public EllipsizingTextView(Context context,
+            AttributeSet attrs) {
         this(context, attrs, android.R.attr.textViewStyle);
     }
 
-    public EllipsizingTextView(Context context, AttributeSet attrs, int defStyle) {
+    public EllipsizingTextView(Context context,
+            AttributeSet attrs,
+            int defStyle) {
         super(context, attrs, defStyle);
         super.setEllipsize(null);
         TypedArray a = context.obtainStyledAttributes(attrs, new int[] { android.R.attr.maxLines });
@@ -78,6 +81,7 @@ public class EllipsizingTextView
         return maxLines == Integer.MAX_VALUE;
     }
 
+    @Override
     public int getMaxLines() {
         return maxLines;
     }
@@ -100,7 +104,8 @@ public class EllipsizingTextView
     }
 
     @Override
-    public void setLineSpacing(float add, float mult) {
+    public void setLineSpacing(float add,
+            float mult) {
         this.lineAdditionalVerticalPadding = add;
         this.lineSpacingMultiplier = mult;
         super.setLineSpacing(add, mult);
@@ -114,7 +119,10 @@ public class EllipsizingTextView
     }
 
     @Override
-    public void setPadding(int left, int top, int right, int bottom) {
+    public void setPadding(int left,
+            int top,
+            int right,
+            int bottom) {
         super.setPadding(left, top, right, bottom);
         if (ellipsizingLastFullyVisibleLine()) {
             isStale = true;
@@ -130,7 +138,10 @@ public class EllipsizingTextView
     }
 
     @Override
-    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+    protected void onSizeChanged(int w,
+            int h,
+            int oldw,
+            int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
         if (ellipsizingLastFullyVisibleLine()) {
             isStale = true;
@@ -138,7 +149,9 @@ public class EllipsizingTextView
     }
 
     @Override
-    protected void onTextChanged(CharSequence text, int start, int before,
+    protected void onTextChanged(CharSequence text,
+            int start,
+            int before,
             int after) {
         super.onTextChanged(text, start, before, after);
         if (!programmaticChange) {
@@ -168,18 +181,21 @@ public class EllipsizingTextView
      * Get how many lines of text we are allowed to display.
      */
     private int getLinesCount() {
+        int result = 0;
         if (ellipsizingLastFullyVisibleLine()) {
             int fullyVisibleLinesCount = getFullyVisibleLinesCount();
             if (fullyVisibleLinesCount == -1) {
-                return 1;
+                result = 1;
             }
             else {
-                return fullyVisibleLinesCount;
+                result = fullyVisibleLinesCount;
             }
         }
         else {
-            return maxLines;
+            result = maxLines;
         }
+
+        return result;
     }
 
     private void resetText() {

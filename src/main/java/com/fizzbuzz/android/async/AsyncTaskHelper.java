@@ -1,6 +1,10 @@
 package com.fizzbuzz.android.async;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.os.AsyncTask;
@@ -70,20 +74,26 @@ public class AsyncTaskHelper<Result>
     private String mProgressMessage1;
     private String mProgressMessage2;
     private Exception mJobException;
+    private final Logger mLogger = LoggerFactory.getLogger(LoggingManager.TAG);
+    private String mName;
 
     /**
-     * A lighter-weight constructor.
-     * 
-     * @param activity the current activity context
-     * @param job a "function object" implementing the {@link AsyncTaskJob} interface, representing the job to be
+     * @param job an object implementing the {@link AsyncTaskJob} interface, representing the job to be
+     *            executed on the background thread
+     */
+    public AsyncTaskHelper(final AsyncTaskJob<Result> job) {
+        this(job, null, null, null, null);
+    }
+
+    /**
+     * @param job an object implementing the {@link AsyncTaskJob} interface, representing the job to be
      *            executed on the background thread
      * @param resultProcessor a "function object" implementing the {@link AsyncTaskResultProcessor} interface,
      *            representing the logic to be executed on the result, on the UI thread (optional, may be null)
      */
     public AsyncTaskHelper(final AsyncTaskJob<Result> job,
             final AsyncTaskResultProcessor<Result> resultProcessor) {
-        mJob = checkNotNull(job, "job");
-        mResultProcessor = resultProcessor; // may be null
+        this(job, resultProcessor, null, null, null);
     }
 
     // with a top-level progress message provided
@@ -109,7 +119,7 @@ public class AsyncTaskHelper<Result>
      * AsyncTaskControllee objects that it manages.
      * 
      * @param activity the current activity context
-     * @param job a "function object" implementing the {@link AsyncTaskJob} interface, representing the job to be
+     * @param job an object implementing the {@link AsyncTaskJob} interface, representing the job to be
      *            executed on the background thread
      * @param resultProcessor a "function object" implementing the {@link AsyncTaskResultProcessor} interface,
      *            representing the logic to be executed on the result, on the UI thread (optional, may be null)
@@ -130,12 +140,25 @@ public class AsyncTaskHelper<Result>
         mProgressMessage2 = progressMessage2; // may be null
     }
 
+    public AsyncTaskHelper<Result> named(final String name) {
+        setName(name);
+        return this;
+    }
+
     @TargetApi(11)
     public void execute() {
         if (Build.VERSION.SDK_INT >= 11)
             super.executeOnExecutor(THREAD_POOL_EXECUTOR);
         else
             super.execute();
+    }
+
+    public String getName() {
+        return mName;
+    }
+
+    public void setName(final String name) {
+        mName = name;
     }
 
     public int getProgress() {
@@ -176,12 +199,17 @@ public class AsyncTaskHelper<Result>
     @Override
     protected Result doInBackground(final Void... params) {
         try {
+            Thread.currentThread().setName(mName);
+
             // passing 'this' to doJob allows the job to invoke onUpdateProgress() or isCancelled().
             return mJob.doJob(this);
         }
         catch (Exception e) {
             mJobException = e;
             return null;
+        }
+        finally {
+            Thread.currentThread().setName("idle thread in AsyncTask pool");
         }
     }
 
@@ -203,7 +231,11 @@ public class AsyncTaskHelper<Result>
                 mResultProcessor.processException(mJobException);
             else
                 mResultProcessor.processResult(result);
-
+        }
+        else {
+            if (mJobException != null) {
+                mLogger.error("AsyncTaskHelper:onPostExecute: exception caught, but no result processor provided, so squelching", mJobException);
+            }
         }
 
         // notify the outbound progress listener that we're done.

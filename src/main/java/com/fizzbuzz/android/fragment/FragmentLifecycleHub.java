@@ -7,12 +7,9 @@ import org.slf4j.LoggerFactory;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-
-import com.fizzbuzz.android.activity.LoggingManager;
 
 public class FragmentLifecycleHub
-        extends Fragment
+        extends BusFragment
         implements FragmentLifecycleListener
 {
     private final Logger mLogger = LoggerFactory.getLogger(LoggingManager.TAG);

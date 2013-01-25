@@ -8,12 +8,12 @@ import org.slf4j.LoggerFactory;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.content.DialogInterface.OnDismissListener;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
 
 import com.fizzbuzz.android.persist.SharedPreferencesUtils;
-import com.fizzbuzz.android.util.LoggingManager;
 import com.fizzbuzz.android.util.R;
 
 /*
@@ -23,17 +23,32 @@ public class AlertDialogFragment
         extends DialogFragment {
     private final Logger mLogger = LoggerFactory.getLogger(LoggingManager.TAG);
     private String mMessage;
+    private OnDismissListener mOnDismissListener;
 
     // for use with a message coming from a String resource
-    public static AlertDialogFragment newInstance(FragmentActivity activity,
-            int messageResourceId) {
+    public static AlertDialogFragment newInstance(final FragmentActivity activity,
+            final int messageResourceId) {
         return newInstance(activity.getString(messageResourceId));
+    }
+
+    // same, but with an OnDismissListener provided
+    public static AlertDialogFragment newInstance(final FragmentActivity activity,
+            final int messageResourceId,
+            final OnDismissListener onDismissListener) {
+        return newInstance(activity.getString(messageResourceId), onDismissListener);
     }
 
     // for use with a plain message String
     public static AlertDialogFragment newInstance(String message) {
+        return newInstance(message, null);
+    }
+
+    // same, but with an OnDismissListener provided
+    public static AlertDialogFragment newInstance(String message,
+            OnDismissListener onDismissListener) {
         AlertDialogFragment frag = new AlertDialogFragment();
         frag.setMessage(message);
+        frag.setOnDismissListener(onDismissListener);
         return frag;
     }
 
@@ -108,6 +123,17 @@ public class AlertDialogFragment
         if (getDialog() != null && getRetainInstance())
             getDialog().setDismissMessage(null);
         super.onDestroyView();
+    }
+
+    @Override
+    public void onDismiss(DialogInterface dialog) {
+        super.onDismiss(dialog);
+        if (mOnDismissListener != null)
+            mOnDismissListener.onDismiss(dialog);
+    };
+
+    public void setOnDismissListener(final OnDismissListener onDismissListener) {
+        mOnDismissListener = onDismissListener;
     }
 
     private void setMessage(String message) {

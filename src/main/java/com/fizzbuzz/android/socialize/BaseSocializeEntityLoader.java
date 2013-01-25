@@ -6,10 +6,10 @@ import android.content.Context;
 import com.socialize.entity.Entity;
 import com.socialize.ui.SocializeEntityLoader;
 
-public class SocializeEntityLoaderBase
+public class BaseSocializeEntityLoader
         implements SocializeEntityLoader {
 
-    public SocializeEntityLoaderBase() {
+    public BaseSocializeEntityLoader() {
         super();
     }
 

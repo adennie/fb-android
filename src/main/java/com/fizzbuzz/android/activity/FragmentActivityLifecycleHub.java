@@ -6,10 +6,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
 
 public class FragmentActivityLifecycleHub
-        extends FragmentActivity
+        extends BaseFragmentActivity
 {
     private final Logger mLogger = LoggerFactory.getLogger(LoggingManager.TAG);
     private final ArrayList<ActivityLifecycleListener> mListeners = new ArrayList<ActivityLifecycleListener>();

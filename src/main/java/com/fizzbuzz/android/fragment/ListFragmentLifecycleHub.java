@@ -4,10 +4,9 @@ import java.util.ArrayList;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.support.v4.app.ListFragment;
 
 public class ListFragmentLifecycleHub
-        extends ListFragment
+        extends BusListFragment
         implements FragmentLifecycleListener
 {
     private final ArrayList<FragmentLifecycleListener> mListeners = new ArrayList<FragmentLifecycleListener>();

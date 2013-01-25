@@ -11,7 +11,6 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
-import com.fizzbuzz.android.util.LoggingManager;
 import com.fizzbuzz.model.PersistentObject;
 import com.google.common.collect.ImmutableMap;
 
@@ -33,7 +32,9 @@ public abstract class ObjectPersist<M extends PersistentObject> {
         String mTable;
         String mColumn;
 
-        public ForeignKeyInfo(final ColumnType type, final String table, final String column) {
+        public ForeignKeyInfo(final ColumnType type,
+                final String table,
+                final String column) {
             mType = type;
             mTable = table;
             mColumn = column;
@@ -57,8 +58,10 @@ public abstract class ObjectPersist<M extends PersistentObject> {
     private final String mTableName;
     private final SQLiteDatabase mDb;
 
-    protected ObjectPersist(final SQLiteDatabase db, final String tableName,
-            final ImmutableMap<String, ColumnType> columnSpec, final ImmutableMap<String, ForeignKeyInfo> foreignKeySpec) {
+    protected ObjectPersist(final SQLiteDatabase db,
+            final String tableName,
+            final ImmutableMap<String, ColumnType> columnSpec,
+            final ImmutableMap<String, ForeignKeyInfo> foreignKeySpec) {
         mDb = checkNotNull(db, "db");
         mTableName = checkNotNull(tableName, "tableName");
         mColumnSpec = ImmutableMap.<String, ColumnType> builder()
@@ -129,12 +132,12 @@ public abstract class ObjectPersist<M extends PersistentObject> {
         mDb.execSQL(buildCreateTableQuery());
     }
 
-    public boolean cursorIsLoaded(final Cursor c) {
+    public static boolean cursorIsLoaded(final Cursor c) {
         return (c != null);
 
     }
 
-    public boolean cursorIsEmpty(final Cursor c) {
+    public static boolean cursorIsEmpty(final Cursor c) {
         if (c == null)
             throw new IllegalStateException("cursor not loaded yet");
 
@@ -159,13 +162,15 @@ public abstract class ObjectPersist<M extends PersistentObject> {
     }
 
     public boolean insert(final M m) {
+
+        boolean result = false;
         if (mDb.insert(mTableName, TICK_STAMP, toCV(m)) == -1) {
             mLogger.error("ObjectPersist.insert: insert failed");
-            return false;
         }
         else {
-            return true;
+            result = true;
         }
+        return result;
     }
 
     public void update(final M m) {
@@ -180,7 +185,8 @@ public abstract class ObjectPersist<M extends PersistentObject> {
         }
     }
 
-    public void delete(String whereClause, String[] whereArgs) {
+    public void delete(String whereClause,
+            String[] whereArgs) {
         if (mDb.delete(mTableName, whereClause, whereArgs) == -1) {
             mLogger.error("ObjectPersist.delete: delete failed");
         }

@@ -4,7 +4,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import android.app.Activity;
 
-import com.fizzbuzz.android.fragment.FragmentLifecycleListenerBase;
+import com.fizzbuzz.android.fragment.AbstractFragmentLifecycleListener;
 
 /*
  * This is a helper class to keep an AsyncTaskManager object synched up with the lifecycle of a Fragment that uses it, usually via the
@@ -13,7 +13,7 @@ import com.fizzbuzz.android.fragment.FragmentLifecycleListenerBase;
  */
 
 public class AsyncTaskManagerFragmentLifecycleListener
-        extends FragmentLifecycleListenerBase {
+        extends AbstractFragmentLifecycleListener {
 
     private final AsyncTaskManager mAsyncTaskManager;
 

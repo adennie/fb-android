@@ -20,7 +20,8 @@
     <android.version>4.2_r1</android.version>
     <android-compat-v4.version>r10</android-compat-v4.version>
     <android-gcm.version>3</android-gcm.version>
-    <socialize.version>2.7.5</socialize.version>
+    <otto.version>1.3.2</otto.version>
+    <socialize.version>2.7.7</socialize.version>
 
   </properties>
 
@@ -29,13 +30,13 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>fb-model</artifactId>
-      <version>1.0.2</version>
+      <version>1.0.3-SNAPSHOT</version>
     </dependency>
 
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>fb-util</artifactId>
-      <version>1.0.2</version>
+      <version>1.0.3-SNAPSHOT</version>
     </dependency>
 
     <!-- 3rd party _packaged_ dependencies, alpha by groupId/artifactId -->
@@ -52,6 +53,12 @@
       <version>${android-gcm.version}</version>
     </dependency>
 
+    <!-- Fizz Buzz fork of socialize SDK -->
+    <dependency>
+      <groupId>com.fizzbuzz</groupId>
+      <artifactId>socialize-sdk-android</artifactId>
+      <version>${socialize.version}</version>
+    </dependency>
 
     <dependency>
       <groupId>com.flurry</groupId>
@@ -72,15 +79,15 @@
     </dependency>
 
     <dependency>
-      <groupId>com.socialize</groupId>
-      <artifactId>socialize-sdk-android</artifactId>
-      <version>${socialize.version}</version>
-    </dependency>
-
-    <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-android</artifactId>
       <version>${slf4j-android.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.squareup</groupId>
+      <artifactId>otto</artifactId>
+      <version>${otto.version}</version>
     </dependency>
 
 

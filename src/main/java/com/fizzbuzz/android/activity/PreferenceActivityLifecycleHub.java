@@ -3,10 +3,9 @@ package com.fizzbuzz.android.activity;
 import java.util.ArrayList;
 
 import android.os.Bundle;
-import android.preference.PreferenceActivity;
 
 public class PreferenceActivityLifecycleHub
-        extends PreferenceActivity
+        extends BasePreferenceActivity
 {
     private final ArrayList<ActivityLifecycleListener> mListeners = new ArrayList<ActivityLifecycleListener>();
 

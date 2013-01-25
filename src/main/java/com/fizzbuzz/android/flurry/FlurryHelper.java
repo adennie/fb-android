@@ -2,12 +2,12 @@ package com.fizzbuzz.android.flurry;
 
 import android.app.Activity;
 
-import com.fizzbuzz.android.activity.ActivityLifecycleListenerBase;
+import com.fizzbuzz.android.activity.AbstractActivityLifecycleListener;
 import com.flurry.android.FlurryAgent;
 
 /* Activities using this class MUST override onStart, onStop, onRestart, AND onDestroy and call the corresponding methods on this class */
 public class FlurryHelper
-        extends ActivityLifecycleListenerBase {
+        extends AbstractActivityLifecycleListener {
     private static String mApiKey;
 
     public FlurryHelper(Activity activity) {

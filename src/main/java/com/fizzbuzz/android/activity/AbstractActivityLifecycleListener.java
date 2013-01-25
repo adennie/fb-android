@@ -10,11 +10,11 @@ import android.os.Bundle;
  * only need to participate in a limited number of activity lifecycle methods, so this class provides no-op implementations of all methods in the
  * interface, allowing subclasses to only implement the ones they care about.
  */
-public abstract class ActivityLifecycleListenerBase
+public abstract class AbstractActivityLifecycleListener
         implements ActivityLifecycleListener {
     private Activity mActivity;
 
-    public ActivityLifecycleListenerBase(Activity activity) {
+    public AbstractActivityLifecycleListener(Activity activity) {
         checkNotNull(activity, "activity");
         mActivity = activity;
     }

@@ -3,8 +3,6 @@ package com.fizzbuzz.android.fragment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fizzbuzz.android.util.LoggingManager;
-
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;

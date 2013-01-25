@@ -8,8 +8,7 @@ import org.slf4j.LoggerFactory;
 import android.app.Activity;
 import android.os.Bundle;
 
-import com.fizzbuzz.android.fragment.FragmentLifecycleListenerBase;
-import com.fizzbuzz.android.util.LoggingManager;
+import com.fizzbuzz.android.fragment.AbstractFragmentLifecycleListener;
 import com.socialize.Socialize;
 import com.socialize.UserUtils;
 import com.socialize.entity.Entity;
@@ -28,7 +27,7 @@ import com.socialize.ui.comment.LinkifyCommentViewActionListener;
  */
 
 public class SocializeFragmentLifecycleListener
-        extends FragmentLifecycleListenerBase {
+        extends AbstractFragmentLifecycleListener {
     private final Logger mLogger = LoggerFactory.getLogger(LoggingManager.TAG);
 
     private final Activity mActivity;
@@ -101,20 +100,21 @@ public class SocializeFragmentLifecycleListener
                 // Called when the user clicks on the action bar
                 // Return true to indicate you do NOT want the action to continue
 
+                boolean consumed = false;
                 // if the user clicks on the ticker, display the user profile
                 if (evt == ActionBarEvent.VIEW) {
                     try {
                         User user = UserUtils.getCurrentUser(mActivity);
                         UserUtils.showUserProfile(mActivity, user);
-                        return true;
                     }
                     catch (SocializeException e) {
                         mLogger.error("SocializeFragmentLifecycleListener$OnActionBarEventListener.onClick: squelching exception.", e);
-                        return false;
+                    }
+                    finally {
+                        consumed = true;
                     }
                 }
-                else
-                    return false;
+                return consumed;
             }
         });
 

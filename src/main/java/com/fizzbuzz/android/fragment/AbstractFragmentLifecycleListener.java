@@ -5,14 +5,14 @@ import android.app.Activity;
 import android.os.Bundle;
 
 /*
- * FragmentLifecycleListenerBase is a base class for concrete classes that implement the FragmentLifecycleListener interface. Generally, a given
+ * AbstractFragmentLifecycleListener is a base class for concrete classes that implement the FragmentLifecycleListener interface. Generally, a given
  * FragmentLifecycleListener will only need to participate in a limited number of fragment lifecycle methods, so this class provides no-op
  * implementations of all methods in the interface, allowing subclasses to only implement the ones they care about.
  */
-public abstract class FragmentLifecycleListenerBase
+public abstract class AbstractFragmentLifecycleListener
         implements FragmentLifecycleListener {
 
-    public FragmentLifecycleListenerBase() {
+    public AbstractFragmentLifecycleListener() {
     }
 
     @Override

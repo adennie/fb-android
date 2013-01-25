@@ -1,4 +1,4 @@
-package com.fizzbuzz.android.activity;
+package com.fizzbuzz.android.persist;
 
 class LoggingManager {
     // This class exists just to define a static string for use by other classes in this package. Make the constructor private to prevent
@@ -6,5 +6,5 @@ class LoggingManager {
     private LoggingManager() {
     }
 
-    public static final String TAG = "com.fizzbuzz.android.activity";
+    public static final String TAG = "com.fizzbuzz.android.persist";
 }

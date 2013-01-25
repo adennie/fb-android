@@ -1,6 +1,5 @@
 package com.fizzbuzz.android.admob;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.slf4j.Logger;
@@ -8,8 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import android.view.ViewGroup;
 
-import com.fizzbuzz.android.fragment.FragmentLifecycleListenerBase;
-import com.fizzbuzz.android.util.LoggingManager;
+import com.fizzbuzz.android.fragment.AbstractFragmentLifecycleListener;
 import com.google.ads.AdView;
 
 /*
@@ -21,14 +19,13 @@ import com.google.ads.AdView;
 
 /* Activities using this class MUST override onDestroy and call the corresponding method on this class */
 public class AdMobFragmentLifecycleListener
-        extends FragmentLifecycleListenerBase
+        extends AbstractFragmentLifecycleListener
 {
     private final Logger mLogger = LoggerFactory.getLogger(LoggingManager.TAG);
     private AdView mAdView;
 
     public AdMobFragmentLifecycleListener(
             AdView adView) {
-        checkArgument(adView instanceof AdView, "adView must be instance of com.google.ads.AdView");
         mAdView = adView;
     }
 

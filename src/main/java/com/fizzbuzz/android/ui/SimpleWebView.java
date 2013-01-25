@@ -12,13 +12,12 @@ import android.content.Context;
 import android.os.Build;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
+import android.view.View;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 import android.widget.ZoomButtonsController;
-
-import com.fizzbuzz.android.util.LoggingManager;
 
 public class SimpleWebView
         extends WebView {
@@ -86,7 +85,7 @@ public class SimpleWebView
         if (!mEnableZoomControls && Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
             getSettings().setDisplayZoomControls(false);
 
-        setScrollBarStyle(WebView.SCROLLBARS_OUTSIDE_OVERLAY);
+        setScrollBarStyle(View.SCROLLBARS_OUTSIDE_OVERLAY);
 
         // intercept any redirects or user navigation. If allowed, handle them with this WebView
         setWebViewClient(new WebViewClient() {

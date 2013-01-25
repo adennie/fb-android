@@ -5,12 +5,12 @@ import org.slf4j.LoggerFactory;
 
 import android.app.Activity;
 
-public abstract class AsyncTaskResultProcessorBase<Result>
+public abstract class AbstractAsyncTaskResultProcessor<Result>
         implements AsyncTaskResultProcessor<Result> {
     private final Logger mLogger = LoggerFactory.getLogger(LoggingManager.TAG);
     private Activity mActivity;
 
-    public AsyncTaskResultProcessorBase(Activity activity) {
+    public AbstractAsyncTaskResultProcessor(Activity activity) {
         mActivity = activity;
     }
 
