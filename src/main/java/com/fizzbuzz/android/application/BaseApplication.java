@@ -3,9 +3,10 @@ package com.fizzbuzz.android.application;
 import android.app.Application;
 import android.content.pm.PackageManager.NameNotFoundException;
 
-import com.fizzbuzz.android.event.BusProvider;
 import com.fizzbuzz.android.persist.SharedPreferencesUtils;
 import com.fizzbuzz.android.util.VersionedStrictModeWrapper;
+import com.fizzbuzz.ottoext.BusProvider;
+import com.fizzbuzz.ottoext.MainThreadBus;
 
 public class BaseApplication
         extends Application {
@@ -20,11 +21,11 @@ public class BaseApplication
         // initialize strict mode
         VersionedStrictModeWrapper.getInstance().init(this);
 
-        // make sure AsyncTask's static members get initialized on a UI thread (http://code.google.com/p/android/issues/detail?id=20915)
+        // make sure AsyncTask's static members get initialized on a UI thread
+        // (http://code.google.com/p/android/issues/detail?id=20915)
         try {
             Class.forName("android.os.AsyncTask");
-        }
-        catch (ClassNotFoundException e) {
+        } catch (ClassNotFoundException e) {
         }
     }
 
@@ -47,11 +48,12 @@ public class BaseApplication
     }
 
     private void processNewInstall() {
-        BusProvider.getInstance().post(new AppInstalledEvent(getVersionCode()));
+        new MainThreadBus(BusProvider.getInstance()).post(new AppInstalledEvent(getVersionCode()));
     }
 
     private void processUpgrade() {
-        BusProvider.getInstance().post(new AppUpgradedEvent(getVersionCode(), readVersionCodeFromPref(PREF_TAG_PREVIOUS_APP_VERSION)));
+        new MainThreadBus(BusProvider.getInstance()).post(
+                new AppUpgradedEvent(getVersionCode(), readVersionCodeFromPref(PREF_TAG_PREVIOUS_APP_VERSION)));
     }
 
     private void updateSavedVersionCodes() {
@@ -75,9 +77,9 @@ public class BaseApplication
         int result = 0;
         try
         {
-            result = getApplicationContext().getPackageManager().getPackageInfo(getApplicationContext().getPackageName(), 0).versionCode;
-        }
-        catch (NameNotFoundException e)
+            result = getApplicationContext().getPackageManager().getPackageInfo(
+                    getApplicationContext().getPackageName(), 0).versionCode;
+        } catch (NameNotFoundException e)
         {
             // squelch
         }

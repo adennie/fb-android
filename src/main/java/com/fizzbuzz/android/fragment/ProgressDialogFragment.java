@@ -3,7 +3,6 @@ package com.fizzbuzz.android.fragment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.os.Bundle;
@@ -43,13 +42,6 @@ public class ProgressDialogFragment
     }
 
     @Override
-    public void onAttach(final Activity activity) {
-        mLogger.info("ProgressDialogFragment.onAttach: in fragment: {}", this);
-        super.onAttach(activity);
-
-    }
-
-    @Override
     public Dialog onCreateDialog(final Bundle savedInstanceState) {
         mLogger.info("ProgressDialogFragment.onCreateDialog: in fragment: {}", this);
         if (savedInstanceState != null)
@@ -62,13 +54,6 @@ public class ProgressDialogFragment
         if (!mIndeterminate)
             mProgressDialog.setProgressStyle(mStyle);
         return mProgressDialog;
-    }
-
-    @Override
-    public void onActivityCreated(final Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        mLogger.info("ProgressDialogFragment.onActivityCreated: in fragment: {}", this);
-
     }
 
     @Override
@@ -85,18 +70,6 @@ public class ProgressDialogFragment
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         saveStateToBundle(outState);
-    }
-
-    @Override
-    public void onDestroy() {
-        mLogger.info("ProgressDialogFragment.onDestroy: in fragment: {}", this);
-        super.onDestroy();
-    }
-
-    @Override
-    public void onDetach() {
-        mLogger.info("ProgressDialogFragment.onDetach: in fragment: {}", this);
-        super.onDetach();
     }
 
     public void onStartProgress(String title,

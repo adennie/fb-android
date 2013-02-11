@@ -17,10 +17,12 @@ package com.fizzbuzz.android.fragment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import android.app.Activity;
+import android.annotation.TargetApi;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceFragment;
 
+@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 public class StockPreferenceFragment
         extends PreferenceFragment {
     private final Logger mLogger = LoggerFactory.getLogger(LoggingManager.TAG);
@@ -33,41 +35,5 @@ public class StockPreferenceFragment
         String fullyQualifiedResourceName = getArguments().getString("resource");
         int res = getActivity().getResources().getIdentifier(fullyQualifiedResourceName, null, null);
         addPreferencesFromResource(res);
-    }
-
-    @Override
-    public void onAttach(final Activity activity) {
-        super.onAttach(activity);
-        mLogger.info("StockPreferenceFragment.onAttach: in fragment: {}", this);
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mLogger.info("StockPreferenceFragment.onDetach: in fragment: {}", this);
-    }
-
-    @Override
-    public void onActivityCreated(final Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        mLogger.info("StockPreferenceFragment.onActivityCreated: in fragment: {}", this);
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        mLogger.info("StockPreferenceFragment.onPause: in fragment: {}", this);
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        mLogger.info("StockPreferenceFragment.onResume: in fragment: {}", this);
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        mLogger.info("StockPreferenceFragment.onDestroy: in fragment: {}", this);
     }
 }

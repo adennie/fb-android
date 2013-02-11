@@ -22,7 +22,8 @@ public class BaseActivity
         if (!isTaskRoot()) {
             final Intent intent = getIntent();
             final String intentAction = intent.getAction();
-            if (intent.hasCategory(Intent.CATEGORY_LAUNCHER) && intentAction != null && intentAction.equals(Intent.ACTION_MAIN)) {
+            if (intent.hasCategory(Intent.CATEGORY_LAUNCHER) && intentAction != null
+                    && intentAction.equals(Intent.ACTION_MAIN)) {
                 mLogger.warn("Main Activity is not the root.  Finishing Main Activity instead of launching.");
                 finish();
                 return;

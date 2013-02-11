@@ -53,7 +53,7 @@ public class VersionedStrictModeWrapper {
         ALLOW_NETWORK
     };
 
-    static public StrictModeWrapper getInstance() {
+    public static synchronized StrictModeWrapper getInstance() {
         StrictModeWrapper wrapper = null;
         final int sdkVersion = Build.VERSION.SDK_INT;
         if (sdkVersion >= Build.VERSION_CODES.GINGERBREAD) {
@@ -65,12 +65,12 @@ public class VersionedStrictModeWrapper {
         return wrapper;
     }
 
-    static public void runWithStrictModeOverride(Permission perm,
+    public static void runWithStrictModeOverride(Permission perm,
             Runnable r) {
         runWithStrictModeOverride(EnumSet.of(perm), r);
     }
 
-    static public void runWithStrictModeOverride(Set<Permission> perms,
+    public static void runWithStrictModeOverride(Set<Permission> perms,
             Runnable r) {
         StrictModeWrapper strictMode = VersionedStrictModeWrapper.getInstance();
         ThreadPolicyWrapper origThreadPolicy = strictMode.getThreadPolicy();
@@ -84,18 +84,17 @@ public class VersionedStrictModeWrapper {
 
         try {
             r.run();
-        }
-        finally {
+        } finally {
             strictMode.restoreThreadPolicy(origThreadPolicy);
         }
     }
 
-    static public <T> T callWithStrictModeOverride(Permission perm,
+    public static <T> T callWithStrictModeOverride(Permission perm,
             Callable<T> c) {
         return callWithStrictModeOverride(EnumSet.of(perm), c);
     }
 
-    static public <T> T callWithStrictModeOverride(Set<Permission> perms,
+    public static <T> T callWithStrictModeOverride(Set<Permission> perms,
             Callable<T> c) {
         T result = null;
         StrictModeWrapper strictMode = VersionedStrictModeWrapper.getInstance();
@@ -110,18 +109,16 @@ public class VersionedStrictModeWrapper {
 
         try {
             result = c.call();
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new RuntimeException(e); // have to hold nose here, but Callable's checked Exception is basically
                                            // useless
-        }
-        finally {
+        } finally {
             strictMode.restoreThreadPolicy(origThreadPolicy);
         }
         return result;
     }
 
-    static public View inflateWithStrictModeOverride(final LayoutInflater inflater,
+    public static View inflateWithStrictModeOverride(final LayoutInflater inflater,
             final int resId,
             final ViewGroup container,
             final boolean attachToRoot)

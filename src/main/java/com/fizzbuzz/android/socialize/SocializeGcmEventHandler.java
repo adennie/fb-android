@@ -5,26 +5,24 @@ import static com.fizzbuzz.android.util.VersionedStrictModeWrapper.Permission.AL
 
 import java.util.EnumSet;
 
-import com.fizzbuzz.android.event.BusProvider;
-import com.fizzbuzz.android.gcm.GcmMessageReceivedEvent;
-import com.fizzbuzz.android.gcm.GcmRegUnregErrorEvent;
-import com.fizzbuzz.android.gcm.GcmRegisteredEvent;
-import com.fizzbuzz.android.gcm.GcmUnregisteredEvent;
+import com.fizzbuzz.android.gcm.GcmEvents.GcmMessageReceivedEvent;
+import com.fizzbuzz.android.gcm.GcmEvents.GcmRegUnregErrorEvent;
+import com.fizzbuzz.android.gcm.GcmEvents.GcmRegisteredEvent;
+import com.fizzbuzz.android.gcm.GcmEvents.GcmUnregisteredEvent;
 import com.fizzbuzz.android.util.VersionedStrictModeWrapper;
 import com.socialize.SmartAlertUtils;
 import com.squareup.otto.Subscribe;
 
-public class SocializeEventHandler {
+public class SocializeGcmEventHandler {
+    private static SocializeGcmEventHandler INSTANCE;
 
-    private static final SocializeEventHandler INSTANCE = new SocializeEventHandler();
-
-    public static SocializeEventHandler getInstance() {
+    public static synchronized SocializeGcmEventHandler getInstance() {
+        if (INSTANCE == null)
+            INSTANCE = new SocializeGcmEventHandler();
         return INSTANCE;
     }
 
-    private SocializeEventHandler() {
-        // register with the event bus
-        BusProvider.getInstance().register(this);
+    private SocializeGcmEventHandler() {
     }
 
     @Subscribe

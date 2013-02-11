@@ -12,11 +12,13 @@ import android.app.Activity;
  * Manages async tasks on behalf of a given controlling object. The controlling object should create an AsyncTaskManager
  * and hold onto it, registering any AsyncTaskHelper objects it creates with the AsyncTaskManager via the manage()
  * method, prior to calling execute() on the AsyncTaskHelper.
- * As Activities detach and subsequently reattach from the (e.g. due to device rotations)
- * The AsyncTaskManager mediates progress updates between the async tasks and the default progress listener interface
+ * As Activities detach/reattach (e.g. due to device rotations) from/to an AsyncTaskManager, it
+ * relays those events to the AsyncTaskHelper objects it manages, so that they never access an Activity that is no
+ * longer around.
+ * An AsyncTaskManager mediates progress updates between the async tasks and the default progress listener interface
  * (optionally) provided by the controlling object, by automatically connecting the listener interface to tasks as
- * they are registered via manage() (if it's not currently in use), and then by moving the connection to the next running task when a previous one
- * completes.
+ * they are registered via manage() (if it's not currently in use), and then by moving the connection to the next
+ * running task when a previous one completes.
  * The rules for using an AsyncTaskManager:
  * If the controlling object is an Activity,
  * - call onUiResume from the activity's onResume
@@ -29,6 +31,8 @@ import android.app.Activity;
  * If the controlling object is a retained Fragment, in addition to the above,
  * - call onActivityAttached from the fragment's onAttach
  * - call onActivityDetached from the fragment's onDetach
+ * Conformance to these rules can be accomplished by having the controlling Activity or Fragment inherit from
+ * Bus*Activity or Bus*Fragment and registering an ActivityEventHandler or FragmentEventHandler with the bus.
  */
 public class AsyncTaskManager
         implements AsyncTaskController {
@@ -45,7 +49,8 @@ public class AsyncTaskManager
     }
 
     public void setDefaultProgressListener(ProgressListener newDefaultListener) {
-        // run through the currently managed tasks to see if any are using the previous default listener. If so, swap it out for the new one.
+        // run through the currently managed tasks to see if any are using the previous default listener. If so, swap it
+        // out for the new one.
         if (mDefaultProgressListener != null && mDefaultProgressListenerInUse) {
             for (AsyncTaskControllee task : mManagedTasks.keySet()) {
                 if (task.getProgressListener() == mDefaultProgressListener) {
@@ -58,34 +63,6 @@ public class AsyncTaskManager
             }
         }
         mDefaultProgressListener = newDefaultListener;
-    }
-
-    // use this variation when you want the managed task to use the manager's default progress listener
-    public void manage(final AsyncTaskControllee task) {
-        checkNotNull(task, "task");
-        checkState(!mManagedTasks.containsKey(task), "attempt to manage AsyncTaskHelper that is already being managed");
-
-        mManagedTasks.put(task, true);
-
-        if (mDefaultProgressListener != null && !mDefaultProgressListenerInUse) {
-            task.setProgressListener(mDefaultProgressListener);
-            mDefaultProgressListenerInUse = true;
-        }
-
-        task.setController(this);
-    }
-
-    // use this variation when you want the managed task to use a non-default progress listener, or no listener
-    public void manage(final AsyncTaskControllee task,
-            final ProgressListener progressListener) {
-        checkNotNull(task, "task");
-        checkState(!mManagedTasks.containsKey(task), "attempt to manage AsyncTaskHelper that is already being managed");
-
-        mManagedTasks.put(task, false);
-
-        if (progressListener != null)
-            task.setProgressListener(progressListener);
-        task.setController(this);
     }
 
     // use this variation when you want the managed task to use the manager's default progress listener
@@ -160,12 +137,41 @@ public class AsyncTaskManager
         cancelAsyncTasks();
     }
 
+    // use this variation when you want the managed task to use the manager's default progress listener
+    private void manage(final AsyncTaskControllee task) {
+        checkNotNull(task, "task");
+        checkState(!mManagedTasks.containsKey(task), "attempt to manage AsyncTaskHelper that is already being managed");
+
+        mManagedTasks.put(task, true);
+
+        if (mDefaultProgressListener != null && !mDefaultProgressListenerInUse) {
+            task.setProgressListener(mDefaultProgressListener);
+            mDefaultProgressListenerInUse = true;
+        }
+
+        task.setController(this);
+    }
+
+    // use this variation when you want the managed task to use a non-default progress listener, or no listener
+    private void manage(final AsyncTaskControllee task,
+            final ProgressListener progressListener) {
+        checkNotNull(task, "task");
+        checkState(!mManagedTasks.containsKey(task), "attempt to manage AsyncTaskHelper that is already being managed");
+
+        mManagedTasks.put(task, false);
+
+        if (progressListener != null)
+            task.setProgressListener(progressListener);
+        task.setController(this);
+    }
+
     private void assignDefaultProgressListenerToTask() {
         // if there is a default progress listener configured and it's not in use
         if (mDefaultProgressListener != null && !mDefaultProgressListenerInUse) {
             // iterate over the managed tasks
             for (AsyncTaskControllee task : mManagedTasks.keySet()) {
-                // if whomever submitted the task to be managed asked that it used the default progress listener, and the task is currently running
+                // if whomever submitted the task to be managed asked that it used the default progress listener, and
+                // the task is currently running
                 if (mManagedTasks.get(task) && task.isRunning()) {
                     task.setProgressListener(mDefaultProgressListener);
                     mDefaultProgressListenerInUse = true;
@@ -181,4 +187,10 @@ public class AsyncTaskManager
         }
         mManagedTasks.clear();
     }
+
+    /*
+     * This is a helper class to keep an AsyncTaskManager object synched up with the lifecycle of a Fragment that uses
+     * it.
+     * For AsyncTaskManagers that are controlled by Activities, use AsyncTaskManagerActivityEventHandler instead.
+     */
 }
