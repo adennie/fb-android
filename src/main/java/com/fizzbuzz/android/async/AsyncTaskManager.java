@@ -6,7 +6,23 @@ import static com.google.common.base.Preconditions.checkState;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.inject.Inject;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import android.app.Activity;
+
+import com.fizzbuzz.android.activity.ActivityEvents.ActivityDestroyedEvent;
+import com.fizzbuzz.android.activity.ActivityEvents.ActivityPausedEvent;
+import com.fizzbuzz.android.activity.ActivityEvents.ActivityResumedEvent;
+import com.fizzbuzz.android.fragment.FragmentEvents.ActivityAttachedEvent;
+import com.fizzbuzz.android.fragment.FragmentEvents.ActivityDetachedEvent;
+import com.fizzbuzz.android.fragment.FragmentEvents.FragmentDestroyedEvent;
+import com.fizzbuzz.android.fragment.FragmentEvents.FragmentPausedEvent;
+import com.fizzbuzz.android.fragment.FragmentEvents.FragmentResumedEvent;
+import com.squareup.otto.OttoBus;
+import com.squareup.otto.Subscribe;
 
 /*
  * Manages async tasks on behalf of a given controlling object. The controlling object should create an AsyncTaskManager
@@ -40,12 +56,13 @@ public class AsyncTaskManager
     private ProgressListener mDefaultProgressListener;
     private boolean mDefaultProgressListenerInUse = false;
 
+    @Inject
     public AsyncTaskManager() {
-        this(null);
     }
 
-    public AsyncTaskManager(final ProgressListener defaultProgressListener) {
-        mDefaultProgressListener = defaultProgressListener;
+    @SuppressWarnings("unused")
+    public void connectToLifecycleBus(OttoBus lifecycleBus) {
+        new LifecycleEventHandler(lifecycleBus, this);
     }
 
     public void setDefaultProgressListener(ProgressListener newDefaultListener) {
@@ -188,9 +205,86 @@ public class AsyncTaskManager
         mManagedTasks.clear();
     }
 
-    /*
-     * This is a helper class to keep an AsyncTaskManager object synched up with the lifecycle of a Fragment that uses
-     * it.
-     * For AsyncTaskManagers that are controlled by Activities, use AsyncTaskManagerActivityEventHandler instead.
-     */
+    public static class LifecycleEventHandler {
+        private final Logger mLogger = LoggerFactory.getLogger(LoggingManager.TAG);
+        private final OttoBus mLifecycleBus;
+        private final AsyncTaskManager mAsyncTaskManager;
+
+        private LifecycleEventHandler(OttoBus lifecycleBus,
+                AsyncTaskManager asyncTaskMgr) {
+
+            // validate input
+            mAsyncTaskManager = checkNotNull(asyncTaskMgr, "asyncTaskMgr");
+            mLifecycleBus = checkNotNull(lifecycleBus, "lifecycleBus");
+            mLifecycleBus.register(this);
+        }
+
+        // handle Activity lifecycle events
+        @Subscribe
+        public void onActivityResumed(final ActivityResumedEvent event) {
+            mLogger.debug("AsyncTaskManager$ActivityEventHandler.onActivityResumed: for activity {}",
+                    event.getActivity());
+            checkState(mAsyncTaskManager != null, "no AsyncTaskManager attached");
+            mAsyncTaskManager.onUiResume();
+        }
+
+        @Subscribe
+        public void onActivityPaused(final ActivityPausedEvent event) {
+            mLogger.debug("AsyncTaskManager$ActivityEventHandler.onActivityPaused: for activity {}",
+                    event.getActivity());
+            checkState(mAsyncTaskManager != null, "no AsyncTaskManager attached");
+            mAsyncTaskManager.onUiPause();
+        }
+
+        @Subscribe
+        public void onActivityDestroyed(final ActivityDestroyedEvent event) {
+            mLogger.debug("AsyncTaskManager$ActivityEventHandler.onActivityDestroyed: for activity {}",
+                    event.getActivity());
+            checkState(mAsyncTaskManager != null, "no AsyncTaskManager attached");
+            mAsyncTaskManager.onDestroy();
+            mLifecycleBus.unregister(this);
+        }
+
+        // handle Fragment lifecycle events
+        @Subscribe
+        public void onActivityAttached(final ActivityAttachedEvent event) {
+            mLogger.debug("AsyncTaskManager$FragmentEventHandler.onActivityAttached: for fragment {}",
+                    event.getFragment());
+            checkState(mAsyncTaskManager != null, "no AsyncTaskManager attached");
+            mAsyncTaskManager.onActivityAttached(event.getFragment().getActivity());
+        }
+
+        @Subscribe
+        public void onFragmentResumed(final FragmentResumedEvent event) {
+            mLogger.debug("AsyncTaskManager$FragmentEventHandler.onFragmentResumed: for fragment {}",
+                    event.getFragment());
+            checkState(mAsyncTaskManager != null, "no AsyncTaskManager attached");
+            mAsyncTaskManager.onUiResume();
+        }
+
+        @Subscribe
+        public void onFragmentPaused(final FragmentPausedEvent event) {
+            mLogger.debug("AsyncTaskManager$FragmentEventHandler.onFragmentPaused: for fragment {}",
+                    event.getFragment());
+            checkState(mAsyncTaskManager != null, "no AsyncTaskManager attached");
+            mAsyncTaskManager.onUiPause();
+        }
+
+        @Subscribe
+        public void onActivityDetached(final ActivityDetachedEvent event) {
+            mLogger.debug("AsyncTaskManager$FragmentEventHandler.onActivityDetached: for fragment {}",
+                    event.getFragment());
+            checkState(mAsyncTaskManager != null, "no AsyncTaskManager attached");
+            mAsyncTaskManager.onActivityDetached();
+        }
+
+        @Subscribe
+        public void onFragmentDestroyed(final FragmentDestroyedEvent event) {
+            mLogger.debug("AsyncTaskManager$FragmentEventHandler.onFragmentDestroyed: for fragment {}",
+                    event.getFragment());
+            checkState(mAsyncTaskManager != null, "no AsyncTaskManager attached");
+            mAsyncTaskManager.onDestroy();
+            mLifecycleBus.unregister(this);
+        }
+    }
 }

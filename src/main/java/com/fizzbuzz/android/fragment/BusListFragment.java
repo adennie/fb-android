@@ -2,6 +2,8 @@ package com.fizzbuzz.android.fragment;
 
 import java.util.Set;
 
+import javax.inject.Inject;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,6 +11,8 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
 
+import com.fizzbuzz.android.application.DaggerApplication;
+import com.fizzbuzz.android.application.DaggerModule.GlobalMainThread;
 import com.fizzbuzz.android.fragment.FragmentEvents.ActivityAttachedEvent;
 import com.fizzbuzz.android.fragment.FragmentEvents.ActivityCreatedEvent;
 import com.fizzbuzz.android.fragment.FragmentEvents.ActivityDetachedEvent;
@@ -19,8 +23,7 @@ import com.fizzbuzz.android.fragment.FragmentEvents.FragmentResumedEvent;
 import com.fizzbuzz.android.fragment.FragmentEvents.FragmentStartedEvent;
 import com.fizzbuzz.android.fragment.FragmentEvents.FragmentStoppedEvent;
 import com.fizzbuzz.android.fragment.FragmentEvents.FragmentViewDestroyedEvent;
-import com.fizzbuzz.ottoext.BusProvider;
-import com.fizzbuzz.ottoext.MainThreadBus;
+import com.fizzbuzz.ottoext.GuaranteedDeliveryBus;
 import com.fizzbuzz.ottoext.ScopedBus;
 import com.squareup.otto.Bus;
 import com.squareup.otto.OttoBus;
@@ -35,27 +38,35 @@ import com.squareup.otto.Produce;
  */
 public class BusListFragment
         extends ListFragment {
-    private final Logger mLogger = LoggerFactory.getLogger(LoggingManager.TAG);
-
     // the global bus is used for application-wide events. It's a MainThreadBus, so all events posted to it get
     // delivered on the main thread.
-    private final OttoBus mGlobalBus = new MainThreadBus(BusProvider.getInstance());
+    @Inject @GlobalMainThread GuaranteedDeliveryBus mGlobalBus;
+
+    private final Logger mLogger = LoggerFactory.getLogger(LoggingManager.TAG);
 
     // the visible-scoped bus wraps the global bus, but is activated/deactivated as the Fragment gets resumed/paused,
     // so that registered objects don't receive events while the Fragment is not visible.
-    private final ScopedBus mVisibleScopedBus = new ScopedBus(mGlobalBus);
+    private ScopedBus mVisibleScopedBus;
 
     // the fragment bus is a separate bus maintained by this Fragment that allows objects to post, produce, and
     // subscribe to events that are specific to this Fragment (e.g., lifecycle events posted by this class)
-    private final ScopedBus mFragmentBus = new ScopedBus(new Bus());
+    private final ScopedBus mFragmentBus;
 
-    private boolean mIsCreated = false; // indicates whether we've been through onCreate() yet.
+    private final FragmentCreatedEventProducer mFragmentCreatedEventProducer;
 
-    public final OttoBus getGlobalBus() {
+    private boolean mIsCreated = false;
+
+    public BusListFragment() {
+        mFragmentBus = new ScopedBus(new Bus());
+        mFragmentBus.activate();
+        mFragmentCreatedEventProducer = new FragmentCreatedEventProducer();
+    }
+
+    public final GuaranteedDeliveryBus getGlobalBus() {
         return mGlobalBus;
     }
 
-    public final OttoBus getVisibleScopedBus() {
+    public final OttoBus getVisibleScopedGlobalBus() {
         return mVisibleScopedBus;
     }
 
@@ -72,7 +83,11 @@ public class BusListFragment
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mIsCreated = true;
+
+        // inject ourselves
+        DaggerApplication.getObjectGraph().inject(this);
+
+        mVisibleScopedBus = new ScopedBus(mGlobalBus);
 
         // register this Fragment with the global bus
         mGlobalBus.register(this);
@@ -82,7 +97,9 @@ public class BusListFragment
 
         // register a FragmentCreatedEventProducer with the Fragment-specific bus for the benefit of future subscribers
         // to FragmentCreatedEvent
-        mFragmentBus.register(new FragmentCreatedEventProducer());
+        mFragmentBus.register(mFragmentCreatedEventProducer);
+
+        mIsCreated = true;
     }
 
     @Override
@@ -126,6 +143,7 @@ public class BusListFragment
     @Override
     public void onDestroy() {
         mFragmentBus.post(new FragmentDestroyedEvent(this));
+        mFragmentBus.unregister(mFragmentCreatedEventProducer);
 
         // at this point, all objects should be deregistered from the Fragment bus. If not, log an error to facilitate
         // investigation.
@@ -136,6 +154,8 @@ public class BusListFragment
                     registeredObjects);
             mFragmentBus.deactivate(); // to prevent memory leaks
         }
+
+        mGlobalBus.unregister(this);
         super.onDestroy();
     }
 

@@ -2,6 +2,8 @@ package com.fizzbuzz.android.activity;
 
 import java.util.Set;
 
+import javax.inject.Inject;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,8 +18,9 @@ import com.fizzbuzz.android.activity.ActivityEvents.ActivityRestartedEvent;
 import com.fizzbuzz.android.activity.ActivityEvents.ActivityResumedEvent;
 import com.fizzbuzz.android.activity.ActivityEvents.ActivityStartedEvent;
 import com.fizzbuzz.android.activity.ActivityEvents.ActivityStoppedEvent;
-import com.fizzbuzz.ottoext.BusProvider;
-import com.fizzbuzz.ottoext.MainThreadBus;
+import com.fizzbuzz.android.application.DaggerApplication;
+import com.fizzbuzz.android.application.DaggerModule.GlobalMainThread;
+import com.fizzbuzz.ottoext.GuaranteedDeliveryBus;
 import com.fizzbuzz.ottoext.ScopedBus;
 import com.squareup.otto.Bus;
 import com.squareup.otto.OttoBus;
@@ -25,23 +28,31 @@ import com.squareup.otto.Produce;
 
 public class BusActivity
         extends BaseActivity {
-    private final Logger mLogger = LoggerFactory.getLogger(LoggingManager.TAG);
-
     // the global bus is used for application-wide events. It's a MainThreadBus, so all events posted to it get
     // delivered on the main thread.
-    private final OttoBus mGlobalBus = new MainThreadBus(BusProvider.getInstance());
+    @Inject @GlobalMainThread GuaranteedDeliveryBus mGlobalBus;
+
+    private final Logger mLogger = LoggerFactory.getLogger(LoggingManager.TAG);
 
     // the visible-scoped bus wraps the global bus, but is activated/deactivated as the Activity gets resumed/paused,
     // so that registered objects don't receive events while the Activity is not visible.
-    private final ScopedBus mVisibleScopedBus = new ScopedBus(mGlobalBus);
+    private ScopedBus mVisibleScopedBus;
 
     // the activity bus is a separate bus that allows objects to post, produce, and subscribe to events that are
     // specific to this Activity (e.g., lifecycle events posted by this class)
-    private final ScopedBus mActivityBus = new ScopedBus(new Bus());
+    private final ScopedBus mActivityBus;
+
+    private final ActivityCreatedEventProducer mActivityCreatedEventProducer;
 
     private boolean mIsCreated = false; // indicates whether we've been through onCreate() yet.
 
-    public final OttoBus getGlobalBus() {
+    public BusActivity() {
+        mActivityBus = new ScopedBus(new Bus());
+        mActivityBus.activate();
+        mActivityCreatedEventProducer = new ActivityCreatedEventProducer();
+    }
+
+    public final GuaranteedDeliveryBus getGlobalBus() {
         return mGlobalBus;
     }
 
@@ -56,7 +67,11 @@ public class BusActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mIsCreated = true;
+
+        // inject ourselves
+        DaggerApplication.getObjectGraph().inject(this);
+
+        mVisibleScopedBus = new ScopedBus(mGlobalBus);
 
         // register this Activity with the global bus
         mGlobalBus.register(this);
@@ -66,8 +81,9 @@ public class BusActivity
 
         // register a ActivityCreatedEventProducer with the Activity-specific bus for the benefit of future subscribers
         // to ActivityCreatedEven
-        mActivityBus.register(new ActivityCreatedEventProducer());
+        mActivityBus.register(mActivityCreatedEventProducer);
 
+        mIsCreated = true;
     }
 
     @Override
@@ -79,6 +95,7 @@ public class BusActivity
     @Override
     protected void onStart() {
         super.onStart();
+        mVisibleScopedBus.activate();
         mActivityBus.post(new ActivityStartedEvent(this));
     }
 
@@ -117,8 +134,9 @@ public class BusActivity
     @Override
     protected void onDestroy() {
         mActivityBus.post(new ActivityDestroyedEvent(this));
+        mActivityBus.unregister(mActivityCreatedEventProducer);
 
-        // at this point, all objects should be deregistered from the Fragment bus. If not, log an error to facilitate
+        // at this point, all objects should be deregistered from the Activity bus. If not, log an error to facilitate
         // investigation.
         Set<Object> registeredObjects = mActivityBus.getRegistrations();
         if (registeredObjects.size() != 0) {
@@ -127,6 +145,8 @@ public class BusActivity
                     registeredObjects);
             mActivityBus.deactivate(); // to prevent memory leaks
         }
+
+        mGlobalBus.unregister(this);
         super.onDestroy();
     }
 

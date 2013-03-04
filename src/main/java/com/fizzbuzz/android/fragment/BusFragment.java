@@ -2,10 +2,17 @@ package com.fizzbuzz.android.fragment;
 
 import java.util.Set;
 
+import javax.inject.Inject;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 
+import com.fizzbuzz.android.application.DaggerApplication;
+import com.fizzbuzz.android.application.DaggerModule.GlobalMainThread;
 import com.fizzbuzz.android.fragment.FragmentEvents.ActivityAttachedEvent;
 import com.fizzbuzz.android.fragment.FragmentEvents.ActivityCreatedEvent;
 import com.fizzbuzz.android.fragment.FragmentEvents.ActivityDetachedEvent;
@@ -16,40 +23,46 @@ import com.fizzbuzz.android.fragment.FragmentEvents.FragmentResumedEvent;
 import com.fizzbuzz.android.fragment.FragmentEvents.FragmentStartedEvent;
 import com.fizzbuzz.android.fragment.FragmentEvents.FragmentStoppedEvent;
 import com.fizzbuzz.android.fragment.FragmentEvents.FragmentViewDestroyedEvent;
-import com.fizzbuzz.ottoext.BusProvider;
-import com.fizzbuzz.ottoext.MainThreadBus;
+import com.fizzbuzz.ottoext.GuaranteedDeliveryBus;
 import com.fizzbuzz.ottoext.ScopedBus;
 import com.squareup.otto.Bus;
 import com.squareup.otto.OttoBus;
 import com.squareup.otto.Produce;
 
 /*
- * BusFragment is a base class for Fragments that want to (a) subscribe to events on a global bus and (b) post Fragment
- * lifecycle events to a local Fragment-specific bus. The existence of this Fragment-specific bus makes it easy to
- * implement helper classes that encapsulate interactions with certain components or APIs and participate in the
- * Fragment lifecycle, while avoiding tight coupling with the Fragment (i.e. the Fragment class need not override
- * lifecycle methods and make "relay" calls to the helper class).
+ * BusFragment is a base class for Fragments that want to (a) post and/or subscribe to events on an application-wide bus
+ * and (b) take advantage of a built-in Fragment-specific event bus that automatically distributes Fragment lifecycle
+ * events. The Fragment-specific bus can also be used by application components to post and subscribe to
+ * events that are related to a particular fragment.
  */
 public class BusFragment
         extends Fragment {
-
-    // private final Logger mLogger = LoggerFactory.getLogger(LoggingManager.TAG);
-
-    // the global bus is used for application-wide events. It's a MainThreadBus, so all events posted to it get
+    // the global bus is used for application-wide events. It's a GuaranteedDeliveryBusMainThreadBus, so all events
+    // posted to it get
     // delivered on the main thread.
-    private final OttoBus mGlobalBus = new MainThreadBus(BusProvider.getInstance());
+    @Inject @GlobalMainThread GuaranteedDeliveryBus mGlobalBus;
+
+    private final Logger mLogger = LoggerFactory.getLogger(LoggingManager.TAG);
 
     // the visible-scoped bus wraps the global bus, but is activated/deactivated as the Fragment gets resumed/paused,
     // so that registered objects don't receive events while the Fragment is not visible.
-    private final ScopedBus mVisibleScopedBus = new ScopedBus(mGlobalBus);
+    private ScopedBus mVisibleScopedBus;
 
     // the fragment bus is a separate bus maintained by this Fragment that allows objects to post, produce, and
     // subscribe to events that are specific to this Fragment (e.g., lifecycle events posted by this class)
-    private final ScopedBus mFragmentBus = new ScopedBus(new Bus());
+    private final ScopedBus mFragmentBus;
+
+    private final FragmentCreatedEventProducer mFragmentCreatedEventProducer;
 
     private boolean mIsCreated = false;
 
-    public final OttoBus getGlobalBus() {
+    public BusFragment() {
+        mFragmentBus = new ScopedBus(new Bus());
+        mFragmentBus.activate();
+        mFragmentCreatedEventProducer = new FragmentCreatedEventProducer();
+    }
+
+    public final GuaranteedDeliveryBus getGlobalBus() {
         return mGlobalBus;
     }
 
@@ -70,7 +83,11 @@ public class BusFragment
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mIsCreated = true;
+
+        // inject ourselves
+        ((DaggerApplication) getActivity().getApplication()).getObjectGraph().inject(this);
+
+        mVisibleScopedBus = new ScopedBus(mGlobalBus);
 
         // register this Fragment with the global bus
         mGlobalBus.register(this);
@@ -80,7 +97,9 @@ public class BusFragment
 
         // register a FragmentCreatedEventProducer with the Fragment-specific bus for the benefit of future subscribers
         // to FragmentCreatedEvent
-        mFragmentBus.register(new FragmentCreatedEventProducer());
+        mFragmentBus.register(mFragmentCreatedEventProducer);
+
+        mIsCreated = true;
     }
 
     @Override
@@ -124,16 +143,19 @@ public class BusFragment
     @Override
     public void onDestroy() {
         mFragmentBus.post(new FragmentDestroyedEvent(this));
+        mFragmentBus.unregister(mFragmentCreatedEventProducer);
 
         // at this point, all objects should be deregistered from the Fragment bus. If not, log an error to facilitate
         // investigation.
         Set<Object> registeredObjects = mFragmentBus.getRegistrations();
         if (registeredObjects.size() != 0) {
-            // mLogger.warn(
-            // "BusFragment.onDestroy: mFragmentBus should not have any registered objects at this point, but it does: {}",
-            // registeredObjects);
+            mLogger.warn(
+                    "BusFragment.onDestroy: mFragmentBus should not have any registered objects at this point, but it does: {}",
+                    registeredObjects);
             mFragmentBus.deactivate(); // to prevent memory leaks
         }
+
+        mGlobalBus.unregister(this);
         super.onDestroy();
     }
 

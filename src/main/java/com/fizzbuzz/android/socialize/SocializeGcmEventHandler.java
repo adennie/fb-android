@@ -5,24 +5,25 @@ import static com.fizzbuzz.android.util.VersionedStrictModeWrapper.Permission.AL
 
 import java.util.EnumSet;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
+import com.fizzbuzz.android.application.DaggerModule.Global;
 import com.fizzbuzz.android.gcm.GcmEvents.GcmMessageReceivedEvent;
 import com.fizzbuzz.android.gcm.GcmEvents.GcmRegUnregErrorEvent;
 import com.fizzbuzz.android.gcm.GcmEvents.GcmRegisteredEvent;
 import com.fizzbuzz.android.gcm.GcmEvents.GcmUnregisteredEvent;
 import com.fizzbuzz.android.util.VersionedStrictModeWrapper;
+import com.fizzbuzz.ottoext.MainThreadBus;
 import com.socialize.SmartAlertUtils;
 import com.squareup.otto.Subscribe;
 
+@Singleton
 public class SocializeGcmEventHandler {
-    private static SocializeGcmEventHandler INSTANCE;
 
-    public static synchronized SocializeGcmEventHandler getInstance() {
-        if (INSTANCE == null)
-            INSTANCE = new SocializeGcmEventHandler();
-        return INSTANCE;
-    }
-
-    private SocializeGcmEventHandler() {
+    @Inject
+    public SocializeGcmEventHandler(final @Global MainThreadBus bus) {
+        bus.register(this);
     }
 
     @Subscribe

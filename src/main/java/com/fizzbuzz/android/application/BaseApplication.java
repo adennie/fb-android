@@ -1,14 +1,13 @@
 package com.fizzbuzz.android.application;
 
 import android.app.Application;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 
 import com.fizzbuzz.android.persist.SharedPreferencesUtils;
 import com.fizzbuzz.android.util.VersionedStrictModeWrapper;
-import com.fizzbuzz.ottoext.BusProvider;
-import com.fizzbuzz.ottoext.MainThreadBus;
 
-public class BaseApplication
+public abstract class BaseApplication
         extends Application {
 
     private static String PREF_TAG_CURRENT_APP_VERSION = "currentAppVersion";
@@ -18,8 +17,10 @@ public class BaseApplication
     public void onCreate() {
         super.onCreate();
 
-        // initialize strict mode
-        VersionedStrictModeWrapper.getInstance().init(this);
+        // debug mode stuff
+        if (isDebugMode()) {
+            VersionedStrictModeWrapper.getInstance().init(this); // turn on strict mode
+        }
 
         // make sure AsyncTask's static members get initialized on a UI thread
         // (http://code.google.com/p/android/issues/detail?id=20915)
@@ -34,11 +35,15 @@ public class BaseApplication
         return getResources().getInteger(resId);
     }
 
+    public boolean isDebugMode() {
+        return (getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE) == 1;
+    }
+
     protected void handleNewInstallsAndUpgrades() {
         if (isNewInstall())
-            processNewInstall();
+            processNewInstall(getVersionCode());
         else
-            processUpgrade();
+            processUpgrade(getVersionCode(), readVersionCodeFromPref(PREF_TAG_PREVIOUS_APP_VERSION));
 
         updateSavedVersionCodes();
     }
@@ -47,14 +52,10 @@ public class BaseApplication
         return readVersionCodeFromPref(PREF_TAG_CURRENT_APP_VERSION) == -1;
     }
 
-    private void processNewInstall() {
-        new MainThreadBus(BusProvider.getInstance()).post(new AppInstalledEvent(getVersionCode()));
-    }
+    abstract protected void processNewInstall(final int newVersionCode);
 
-    private void processUpgrade() {
-        new MainThreadBus(BusProvider.getInstance()).post(
-                new AppUpgradedEvent(getVersionCode(), readVersionCodeFromPref(PREF_TAG_PREVIOUS_APP_VERSION)));
-    }
+    abstract protected void processUpgrade(final int newVersionCode,
+            final int prevInstallVersionCode);
 
     private void updateSavedVersionCodes() {
         // copy the previous value of the version code for later reference before we overwrite it
