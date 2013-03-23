@@ -40,22 +40,21 @@ public abstract class BaseApplication
     }
 
     protected void handleNewInstallsAndUpgrades() {
-        if (isNewInstall())
+        int savedVersion = readVersionCodeFromPref(PREF_TAG_CURRENT_APP_VERSION);
+        if (savedVersion == -1)
             processNewInstall(getVersionCode());
-        else
+        else if (savedVersion != getVersionCode())
             processUpgrade(getVersionCode(), readVersionCodeFromPref(PREF_TAG_PREVIOUS_APP_VERSION));
+    }
 
+    protected void processNewInstall(final int newVersionCode) {
         updateSavedVersionCodes();
     }
 
-    private boolean isNewInstall() {
-        return readVersionCodeFromPref(PREF_TAG_CURRENT_APP_VERSION) == -1;
+    protected void processUpgrade(final int newVersionCode,
+                                  final int prevInstallVersionCode) {
+        updateSavedVersionCodes();
     }
-
-    abstract protected void processNewInstall(final int newVersionCode);
-
-    abstract protected void processUpgrade(final int newVersionCode,
-            final int prevInstallVersionCode);
 
     private void updateSavedVersionCodes() {
         // copy the previous value of the version code for later reference before we overwrite it
@@ -66,7 +65,7 @@ public abstract class BaseApplication
     }
 
     private void saveVersionCodeToPref(final String prefTag,
-            final int versionCode) {
+                                       final int versionCode) {
         SharedPreferencesUtils.setLongNoStrict(this, prefTag, versionCode);
     }
 
@@ -76,12 +75,10 @@ public abstract class BaseApplication
 
     private int getVersionCode() {
         int result = 0;
-        try
-        {
+        try {
             result = getApplicationContext().getPackageManager().getPackageInfo(
                     getApplicationContext().getPackageName(), 0).versionCode;
-        } catch (NameNotFoundException e)
-        {
+        } catch (NameNotFoundException e) {
             // squelch
         }
         return result;

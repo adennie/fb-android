@@ -2,14 +2,14 @@ package com.fizzbuzz.android.gcm;
 
 import javax.inject.Inject;
 
+import com.fizzbuzz.android.application.BusApplicationModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import android.content.Context;
 import android.content.Intent;
 
-import com.fizzbuzz.android.application.DaggerApplication;
-import com.fizzbuzz.android.application.DaggerModule.GlobalMainThread;
+import com.fizzbuzz.android.injection.Injector;
 import com.fizzbuzz.android.gcm.GcmEvents.GcmMessageReceivedEvent;
 import com.fizzbuzz.android.gcm.GcmEvents.GcmRegUnregErrorEvent;
 import com.fizzbuzz.android.gcm.GcmEvents.GcmRegisteredEvent;
@@ -19,13 +19,14 @@ import com.google.android.gcm.GCMBaseIntentService;
 
 public class GcmBusIntentService
         extends GCMBaseIntentService {
-    @Inject @GlobalMainThread GuaranteedDeliveryBus mGuaranteedDeliveryBus;
+    @Inject @BusApplicationModule.ApplicationScopedMainThread
+    GuaranteedDeliveryBus mGuaranteedDeliveryBus;
 
     private final Logger mLogger = LoggerFactory.getLogger(LoggingManager.TAG);
 
     @Override
     public void onCreate() {
-        DaggerApplication.getObjectGraph().inject(this);
+        ((Injector) getApplication()).getObjectGraph().inject(this);
 
     };
 

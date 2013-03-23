@@ -38,7 +38,7 @@ import com.squareup.otto.Subscribe;
  */
 public class SocializeActionBarHelper {
     private final Logger mLogger = LoggerFactory.getLogger(LoggingManager.TAG);
-    private final ActionBarView mActionBarView;
+    private ActionBarView mActionBarView;
 
     public static boolean isSocializeSupported(final Context context) {
         boolean result = true;
@@ -50,28 +50,23 @@ public class SocializeActionBarHelper {
         return result;
     }
 
-    public static ActionBarView createActionBar(final Context context,
+    @SuppressWarnings("unused")
+    public ActionBarView createActionBar(final Context context,
             final ViewGroup actionBarFrame,
             final LayoutInflater inflater,
             final int layoutResId,
             final OttoBus bus) {
-        ActionBarView result = null;
         if (NetworkHelper.isConnected(context) && SocializeActionBarHelper.isSocializeSupported(context)) {
-            ActionBarView abView = (ActionBarView) VersionedStrictModeWrapper.inflateWithStrictModeOverride(
+            mActionBarView = (ActionBarView) VersionedStrictModeWrapper.inflateWithStrictModeOverride(
                     inflater,
                     layoutResId, null, false);
-            actionBarFrame.addView(abView);
+            actionBarFrame.addView(mActionBarView);
 
             // register an event handler to coordinate Fragment lifecycle events with the Socialize ActionBar.
-            SocializeActionBarHelper.FragmentEventHandler.registerWithBus(bus, abView);
-            result = abView;
+            new FragmentEventHandler(bus, mActionBarView);
         }
 
-        return result;
-    }
-
-    public SocializeActionBarHelper(final ActionBarView actionBarView) {
-        mActionBarView = actionBarView;
+        return mActionBarView;
     }
 
     public void setEntity(String entityKey,
@@ -154,13 +149,6 @@ public class SocializeActionBarHelper {
         private final Logger mLogger = LoggerFactory.getLogger(LoggingManager.TAG);
         private final OttoBus mBus;
         private final ActionBarView mActionBarView;
-
-        @SuppressWarnings("unused")
-        public static void registerWithBus(final OttoBus bus,
-                final ActionBarView actionBarView) {
-            // no need to hold a reference; the bus will hold one until the handler auto-deregisters itself later
-            new FragmentEventHandler(bus, actionBarView);
-        }
 
         private FragmentEventHandler(final OttoBus bus,
                 final ActionBarView actionBarView) {

@@ -8,7 +8,7 @@ import java.util.EnumSet;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import com.fizzbuzz.android.application.DaggerModule.Global;
+import com.fizzbuzz.android.application.BusApplicationModule;
 import com.fizzbuzz.android.gcm.GcmEvents.GcmMessageReceivedEvent;
 import com.fizzbuzz.android.gcm.GcmEvents.GcmRegUnregErrorEvent;
 import com.fizzbuzz.android.gcm.GcmEvents.GcmRegisteredEvent;
@@ -22,7 +22,7 @@ import com.squareup.otto.Subscribe;
 public class SocializeGcmEventHandler {
 
     @Inject
-    public SocializeGcmEventHandler(final @Global MainThreadBus bus) {
+    public SocializeGcmEventHandler(final @BusApplicationModule.ApplicationScoped MainThreadBus bus) {
         bus.register(this);
     }
 

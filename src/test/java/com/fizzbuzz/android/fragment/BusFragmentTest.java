@@ -1,13 +1,12 @@
 package com.fizzbuzz.android.fragment;
 
 import static org.fest.assertions.api.Assertions.assertThat;
-import mockit.Expectations;
 
-import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
 
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 
 import com.fizzbuzz.android.fragment.FragmentEvents.ActivityAttachedEvent;
 import com.fizzbuzz.android.fragment.FragmentEvents.ActivityCreatedEvent;
@@ -21,9 +20,7 @@ import com.fizzbuzz.android.fragment.FragmentEvents.FragmentStoppedEvent;
 import com.fizzbuzz.android.fragment.FragmentEvents.FragmentViewDestroyedEvent;
 import com.squareup.otto.Subscribe;
 
-// @RunWith(RobolectricTestRunner.class)
-// @RunWith(JMockit.class)
-@Ignore
+@RunWith(RobolectricTestRunner.class)
 public class BusFragmentTest {
 
     @Test
@@ -34,13 +31,6 @@ public class BusFragmentTest {
         testFrag.getFragmentBus().register(handler);
 
         final Bundle bundle = new Bundle();
-
-        new Expectations() {
-            Fragment mockFrag;
-            {
-                mockFrag.onActivityCreated(bundle);
-            }
-        };
 
         testFrag.onActivityCreated(bundle);
 

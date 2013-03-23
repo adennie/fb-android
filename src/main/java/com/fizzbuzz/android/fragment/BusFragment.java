@@ -1,33 +1,21 @@
 package com.fizzbuzz.android.fragment;
 
-import java.util.Set;
-
-import javax.inject.Inject;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-
-import com.fizzbuzz.android.application.DaggerApplication;
-import com.fizzbuzz.android.application.DaggerModule.GlobalMainThread;
-import com.fizzbuzz.android.fragment.FragmentEvents.ActivityAttachedEvent;
-import com.fizzbuzz.android.fragment.FragmentEvents.ActivityCreatedEvent;
-import com.fizzbuzz.android.fragment.FragmentEvents.ActivityDetachedEvent;
-import com.fizzbuzz.android.fragment.FragmentEvents.FragmentCreatedEvent;
-import com.fizzbuzz.android.fragment.FragmentEvents.FragmentDestroyedEvent;
-import com.fizzbuzz.android.fragment.FragmentEvents.FragmentPausedEvent;
-import com.fizzbuzz.android.fragment.FragmentEvents.FragmentResumedEvent;
-import com.fizzbuzz.android.fragment.FragmentEvents.FragmentStartedEvent;
-import com.fizzbuzz.android.fragment.FragmentEvents.FragmentStoppedEvent;
-import com.fizzbuzz.android.fragment.FragmentEvents.FragmentViewDestroyedEvent;
+import com.fizzbuzz.android.application.BusApplicationModule;
+import com.fizzbuzz.android.fragment.FragmentEvents.*;
+import com.fizzbuzz.android.injection.Injector;
 import com.fizzbuzz.ottoext.GuaranteedDeliveryBus;
 import com.fizzbuzz.ottoext.ScopedBus;
 import com.squareup.otto.Bus;
 import com.squareup.otto.OttoBus;
 import com.squareup.otto.Produce;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.inject.Inject;
+import java.util.Set;
 
 /*
  * BusFragment is a base class for Fragments that want to (a) post and/or subscribe to events on an application-wide bus
@@ -37,10 +25,10 @@ import com.squareup.otto.Produce;
  */
 public class BusFragment
         extends Fragment {
-    // the global bus is used for application-wide events. It's a GuaranteedDeliveryBusMainThreadBus, so all events
-    // posted to it get
+    // the global bus is used for application-wide events. It's a MainThreadBus, so all events posted to it get
     // delivered on the main thread.
-    @Inject @GlobalMainThread GuaranteedDeliveryBus mGlobalBus;
+    @Inject @BusApplicationModule.ApplicationScopedMainThread
+    GuaranteedDeliveryBus mGlobalBus;
 
     private final Logger mLogger = LoggerFactory.getLogger(LoggingManager.TAG);
 
@@ -85,7 +73,7 @@ public class BusFragment
         super.onCreate(savedInstanceState);
 
         // inject ourselves
-        ((DaggerApplication) getActivity().getApplication()).getObjectGraph().inject(this);
+        ((Injector) getActivity()).getObjectGraph().inject(this);
 
         mVisibleScopedBus = new ScopedBus(mGlobalBus);
 
@@ -147,7 +135,7 @@ public class BusFragment
 
         // at this point, all objects should be deregistered from the Fragment bus. If not, log an error to facilitate
         // investigation.
-        Set<Object> registeredObjects = mFragmentBus.getRegistrations();
+        Set<Object> registeredObjects = mFragmentBus.getRegistrants();
         if (registeredObjects.size() != 0) {
             mLogger.warn(
                     "BusFragment.onDestroy: mFragmentBus should not have any registered objects at this point, but it does: {}",
