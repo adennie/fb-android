@@ -39,6 +39,8 @@ public abstract class InjectingApplication
     }
 
     protected List<Object> getModules() {
-        return new ArrayList<Object>();
+        List<Object> result = new ArrayList<Object>();
+        result.add(new AppModule(this));
+        return result;
     }
 }

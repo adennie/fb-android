@@ -9,7 +9,7 @@ public class InjectingPreferenceActivity
         extends BasePreferenceActivity
         implements ActivityInjector {
     private ObjectGraph mObjectGraph;
-    private Class<? extends BaseActivityModule> mActivityModuleClass;
+    private Class<? extends ActivityModule> mActivityModuleClass;
 
     @Override
     public final ObjectGraph getObjectGraph() {
@@ -25,7 +25,7 @@ public class InjectingPreferenceActivity
 
         // first, get the Activity-specific module from the application's object graph
         ObjectGraph appGraph = ((Injector) getApplication()).getObjectGraph();
-        BaseActivityModule activityModule = appGraph.get(mActivityModuleClass);
+        ActivityModule activityModule = appGraph.get(mActivityModuleClass);
         activityModule.setActivity(this);
 
         // OK, now expand the application graph with the ActivityModule
@@ -41,7 +41,7 @@ public class InjectingPreferenceActivity
     }
 
     @Override
-    public void setActivityModuleClass(Class<? extends BaseActivityModule> activityModuleClass) {
+    public void setActivityModuleClass(Class<? extends ActivityModule> activityModuleClass) {
         mActivityModuleClass = activityModuleClass;
     }
 }

@@ -3,7 +3,7 @@ package com.fizzbuzz.android.activity;
 import android.app.Activity;
 import android.os.Bundle;
 import com.fizzbuzz.android.activity.ActivityEvents.*;
-import com.fizzbuzz.android.activity.BaseActivityModule.ActivityScoped;
+import com.fizzbuzz.android.activity.ActivityModule.ActivityScoped;
 import com.fizzbuzz.android.application.BusApplication;
 import com.fizzbuzz.android.injection.Injector;
 import com.fizzbuzz.ottoext.GuaranteedDeliveryBus;
