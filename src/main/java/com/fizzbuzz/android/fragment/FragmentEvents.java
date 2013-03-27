@@ -1,10 +1,12 @@
 package com.fizzbuzz.android.fragment;
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.view.View;
 
 public class FragmentEvents {
-    private static class FragmentLifecycleEvent {
+    public static class FragmentLifecycleEvent {
         private final Fragment mFragment;
 
         public FragmentLifecycleEvent(final Fragment fragment) {
@@ -18,8 +20,15 @@ public class FragmentEvents {
 
     public static class ActivityAttachedEvent
             extends FragmentLifecycleEvent {
-        public ActivityAttachedEvent(final Fragment fragment) {
+        private Activity mActivity;
+
+        public ActivityAttachedEvent(final Fragment fragment, final Activity activity) {
             super(fragment);
+            mActivity = activity;
+        }
+
+        public Activity getActivity() {
+            return mActivity;
         }
     }
 
@@ -27,6 +36,20 @@ public class FragmentEvents {
             extends FragmentLifecycleEvent {
         public FragmentCreatedEvent(final Fragment fragment) {
             super(fragment);
+        }
+    }
+
+    public static class FragmentViewCreatedEvent
+        extends FragmentLifecycleEvent {
+        private View mView;
+
+        public FragmentViewCreatedEvent(final Fragment fragment, final View view ) {
+            super(fragment);
+            mView = view;
+        }
+
+        public View getView() {
+            return mView;
         }
     }
 

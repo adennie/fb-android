@@ -35,9 +35,9 @@
     <output-test url="file://$MODULE_DIR$/target/test-classes" />
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/target/generated-sources/r" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/target/generated-sources/test-annotations" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/java" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/test/java" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/target/generated-sources/test-annotations" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/target/generated-sources/annotations" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target/classes" />
       <excludeFolder url="file://$MODULE_DIR$/target/generated-sources/combined-assets" />
@@ -98,7 +98,7 @@
     <orderEntry type="library" name="Maven: com.google.android.gcm:gcm-client:3" level="project" />
     <orderEntry type="library" name="Maven: com.flurry:flurry-sdk:3.0.2" level="project" />
     <orderEntry type="library" name="Maven: com.google.android.admob:admob:6.2.1" level="project" />
-    <orderEntry type="library" name="Maven: com.squareup.dagger:dagger:1.0-SNAPSHOT" level="project" />
+    <orderEntry type="module" module-name="dagger" />
     <orderEntry type="library" name="Maven: javax.inject:javax.inject:1" level="project" />
     <orderEntry type="library" name="Maven: org.slf4j:slf4j-android:1.6.1-RC1" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: android:android:4.2_r1" level="project" />

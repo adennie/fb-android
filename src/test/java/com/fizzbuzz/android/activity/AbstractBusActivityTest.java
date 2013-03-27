@@ -3,20 +3,24 @@ package com.fizzbuzz.android.activity;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Intent;
+import com.fizzbuzz.android.application.BusApplication;
+import com.fizzbuzz.android.injection.Injector;
 import com.squareup.otto.OttoBus;
 import com.squareup.otto.Subscribe;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.model.InitializationError;
 import org.robolectric.Robolectric;
+import org.robolectric.RobolectricTestRunner;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 
-@RunWith(TestBusAppRobolectricTestRunner.class)
-public abstract class AbstractBusActivityTest<T extends Activity & ActivityInjector & BusManagingActivity> {
+@RunWith(AbstractBusActivityTest.LocalTestRunner.class)
+public abstract class AbstractBusActivityTest<T extends Activity & Injector & BusManagingActivity> {
 
     private T mActivity1;
     private T mActivity2;
@@ -40,9 +44,7 @@ public abstract class AbstractBusActivityTest<T extends Activity & ActivityInjec
     @Test
     public void testDistinctBusActivitiesGetInjectedWithDistinctActivityBuses() {
         // initialize two BusActivities
-        mActivity1.setActivityModuleClass(TestBusActivityModule.class);
         ((ActivityLifecycle)mActivity1).onCreate(null);
-        mActivity2.setActivityModuleClass(TestBusActivityModule.class);
         ((ActivityLifecycle)mActivity2).onCreate(null);
 
         assertThat(mActivity1.getActivityBus()).isNotEqualTo(mActivity2.getActivityBus());
@@ -52,9 +54,7 @@ public abstract class AbstractBusActivityTest<T extends Activity & ActivityInjec
     public void testDistinctBusActivitiesPostEventsToTheirOwnDistinctLowestLevelBuses() {
 
         // initialize two BusActivities
-        mActivity1.setActivityModuleClass(TestBusActivityModule.class);
         ((ActivityLifecycle)mActivity1).onCreate(null);
-        mActivity2.setActivityModuleClass(TestBusActivityModule.class);
         ((ActivityLifecycle)mActivity2).onCreate(null);
 
         // create and register two event handlers, one for each activity's bus
@@ -74,11 +74,9 @@ public abstract class AbstractBusActivityTest<T extends Activity & ActivityInjec
     }
 
     @Test
-    public void testDistinctBusActivitiesShareACommonGlobalBus() {
+    public void testDistinctBusActivitiesShareACommonApplicationBus() {
         // initialize two BusActivities
-        mActivity1.setActivityModuleClass(TestBusActivityModule.class);
         ((ActivityLifecycle)mActivity1).onCreate(null);
-        mActivity2.setActivityModuleClass(TestBusActivityModule.class);
         ((ActivityLifecycle)mActivity2).onCreate(null);
 
         assertThat(mActivity1.getApplicationBus()).isEqualTo(mActivity2.getApplicationBus());
@@ -86,14 +84,13 @@ public abstract class AbstractBusActivityTest<T extends Activity & ActivityInjec
 
     @Test
     public void testVisibilityScopedAppBusAutoRegistersAndDeregistersProperly() {
-        mActivity1.setActivityModuleClass(TestBusActivityModule.class);
         ((ActivityLifecycle)mActivity1).onCreate(null);
 
         OttoBus visScopedAppBus = mActivity1.getVisibilityScopedApplicationBus();
         TestEventHandler handler = new TestEventHandler();
         visScopedAppBus.register(handler);
 
-        // OK, the visibility-scoped application bus should not pass events to subscribers unless the activity
+        // The visibility-scoped application bus should not pass events to subscribers unless the activity
         // is visible (post-onResume, pre-onPause)
         visScopedAppBus.post(new TestEvent());
         assertThat(handler.eventWasReceived()).isFalse();
@@ -171,7 +168,18 @@ public abstract class AbstractBusActivityTest<T extends Activity & ActivityInjec
         public void onTestEvent(final TestEvent event) {
             mReceivedEvents.add(event);
         }
-
     }
 
+    public static class LocalTestRunner
+            extends RobolectricTestRunner {
+
+        public LocalTestRunner(Class<?> testClass) throws InitializationError {
+            super(testClass);
+        }
+
+        @Override
+        protected Application createApplication() {
+            return new BusApplication();
+        }
+    }
 }

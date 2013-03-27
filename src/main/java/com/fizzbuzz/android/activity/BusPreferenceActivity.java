@@ -5,6 +5,7 @@ import com.fizzbuzz.android.application.BusApplication;
 import com.fizzbuzz.ottoext.GuaranteedDeliveryOttoBus;
 
 import javax.inject.Inject;
+import java.util.List;
 
 // This class needs to derive from PreferenceActivity in order to override its lifecycle methods, but it delegates
 // pretty much everything to BusActivityHelper, which encapsulates common implementation logic for reuse by other
@@ -83,6 +84,14 @@ public class BusPreferenceActivity
     @Override
     public void onDestroy() {
         mBusHelper.onDestroy();
+        getApplicationBus().unregister(this);
         super.onDestroy();
+    }
+    
+    @Override
+    protected List<Object> getModules() {
+        List<Object> modules = super.getModules();
+        modules.add(new BusActivityModule());
+        return modules;
     }
 }

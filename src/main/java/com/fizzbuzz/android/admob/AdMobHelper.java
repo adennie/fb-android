@@ -1,20 +1,20 @@
 package com.fizzbuzz.android.admob;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
-
 import com.fizzbuzz.android.fragment.FragmentEvents.FragmentViewDestroyedEvent;
 import com.fizzbuzz.android.util.NetworkHelper;
 import com.fizzbuzz.android.util.VersionedStrictModeWrapper;
 import com.google.ads.AdView;
 import com.squareup.otto.OttoBus;
 import com.squareup.otto.Subscribe;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.inject.Inject;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /*
  * This helper class listens to a Fragment's lifecycle events and interacts with the AdMob API appropriately.
@@ -23,7 +23,11 @@ import com.squareup.otto.Subscribe;
  */
 public class AdMobHelper {
 
-    public static void createAdView(final Context context,
+    @Inject
+    public AdMobHelper() {
+    }
+
+    public void createAdView(final Context context,
             final ViewGroup viewGroup,
             final LayoutInflater inflater,
             final int layoutResId,

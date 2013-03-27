@@ -14,10 +14,10 @@ import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 @Module
-public class AppModule {
+public class InjectingApplicationModule {
     InjectingApplication mApp;
 
-    public AppModule(InjectingApplication app) {
+    public InjectingApplicationModule(InjectingApplication app) {
         mApp = app;
     }
 

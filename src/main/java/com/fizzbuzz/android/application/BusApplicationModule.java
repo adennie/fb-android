@@ -16,7 +16,7 @@ import java.lang.annotation.Target;
 import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-@Module(entryPoints = {
+@Module(entryPoints = {BusApplication.class,
         GuaranteedDeliveryBus.class,
         MainThreadBus.class})
 public class BusApplicationModule {

@@ -5,6 +5,7 @@ import com.fizzbuzz.android.application.BusApplication;
 import com.fizzbuzz.ottoext.GuaranteedDeliveryOttoBus;
 
 import javax.inject.Inject;
+import java.util.List;
 
 // This class needs to derive from Activity in order to override its lifecycle methods, but it delegates pretty much
 // everything to BusActivityHelper, which encapsulates common implementation logic for reuse by other subclasses of
@@ -36,7 +37,7 @@ public class BusActivity
 
         mBusHelper.onCreate(this);
 
-        // register the global bus (this is really for the benefit of subclasses, who may want to subscribe to events)
+        // register with the application bus (this is really for the benefit of subclasses, who may want to subscribe to events)
         getApplicationBus().register(this);
     }
 
@@ -85,6 +86,16 @@ public class BusActivity
     @Override
     public void onDestroy() {
         mBusHelper.onDestroy();
+
+        getApplicationBus().unregister(this);
+
         super.onDestroy();
+    }
+
+    @Override
+    protected List<Object> getModules() {
+        List<Object> modules = super.getModules();
+        modules.add(new BusActivityModule());
+        return modules;
     }
 }

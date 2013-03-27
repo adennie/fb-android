@@ -1,6 +1,8 @@
 package com.fizzbuzz.android.activity;
 
 import android.app.Activity;
+import dagger.Module;
+import dagger.Provides;
 
 import javax.inject.Qualifier;
 import java.lang.annotation.Documented;
@@ -10,10 +12,18 @@ import java.lang.annotation.Target;
 import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-public interface ActivityModule {
+@Module
+public class InjectingActivityModule {
+    private Activity mActivity;
 
-    public void setActivity(final Activity activity);
-    public Activity provideActivity();
+    public InjectingActivityModule(Activity activity) {
+        mActivity = activity;
+    }
+
+    @Provides
+    public Activity provideActivity() {
+        return mActivity;
+    }
 
     @Qualifier
     @Target({FIELD, PARAMETER, METHOD})
