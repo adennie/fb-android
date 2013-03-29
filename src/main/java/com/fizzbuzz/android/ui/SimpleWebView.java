@@ -1,11 +1,5 @@
 package com.fizzbuzz.android.ui;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
@@ -18,15 +12,19 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 import android.widget.ZoomButtonsController;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class SimpleWebView
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
+public abstract class SimpleWebView
         extends WebView {
     private final Logger mLogger = LoggerFactory.getLogger(LoggingManager.TAG);
     private boolean mShowProgress = false;
     private boolean mAllowUrlLoading = true;
     private boolean mEnableZoomControls = false;
     private int mUrlLoadingDisabledToastMessageId;
-    private Activity mActivity;
     private ZoomButtonsController mZoomController = null;
 
     // Construct a new SimpleWebView with a Context object.
@@ -60,17 +58,11 @@ public class SimpleWebView
         mEnableZoomControls = enable;
     }
 
-    public void attachActivity(final Activity activity) {
-        mActivity = activity;
-    }
-
-    public void detachActivity() {
-        mActivity = null;
-    }
-
     public void showProgress(final boolean showProgress) {
         mShowProgress = showProgress;
     }
+
+    abstract protected  Activity getActivity();
 
     @SuppressLint({ "SetJavaScriptEnabled", "NewApi" })
     @Override
@@ -118,9 +110,10 @@ public class SimpleWebView
                     final int progress) {
                 // Activities and WebViews measure progress with different scales.
                 // The progress meter will automatically disappear when we reach 100%
-                if (mActivity != null && mShowProgress) {
-                    mActivity.setProgressBarVisibility(true); // may already be true, but we don't know
-                    mActivity.setProgress(progress * 100);
+                Activity activity = getActivity();
+                if (activity != null && mShowProgress) {
+                    activity.setProgressBarVisibility(true); // may already be true, but we don't know
+                    activity.setProgress(progress * 100);
                 }
             }
         });
