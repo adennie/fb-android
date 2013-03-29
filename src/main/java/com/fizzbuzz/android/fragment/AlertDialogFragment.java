@@ -1,10 +1,5 @@
 package com.fizzbuzz.android.fragment;
 
-import java.util.Calendar;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
@@ -12,9 +7,12 @@ import android.content.DialogInterface.OnDismissListener;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
-
 import com.fizzbuzz.android.persist.SharedPreferencesUtils;
 import com.fizzbuzz.android.util.R;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Calendar;
 
 /*
  * A general-purpose AlertDialog-based DialogFragment that shows a message and an OK button

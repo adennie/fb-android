@@ -1,15 +1,15 @@
 package com.fizzbuzz.android.activity;
 
-import javax.inject.Inject;
-
 import android.os.Bundle;
-
+import com.fizzbuzz.android.activity.InjectingActivityModule.ActivityScoped;
 import com.fizzbuzz.android.async.AsyncTaskManager;
+
+import javax.inject.Inject;
 
 public class AsyncPreferenceActivity
         extends BusPreferenceActivity {
 
-    @Inject AsyncTaskManager mAsyncTaskManager;
+    @Inject @ActivityScoped AsyncTaskManager mAsyncTaskManager;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {

@@ -1,7 +1,6 @@
 package com.fizzbuzz.android.fragment;
 
 import android.app.Activity;
-import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import com.fizzbuzz.android.injection.Injector;
 import dagger.ObjectGraph;
@@ -21,6 +20,7 @@ public class InjectingFragment
     private ObjectGraph mObjectGraph;
 
     public void onAttach(Activity activity) {
+        super.onAttach(activity);
 
         // make sure it's the first time through
         if (mObjectGraph == null) {
@@ -32,12 +32,6 @@ public class InjectingFragment
             // now we can inject ourselves
             inject(this);
         }
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
     }
 
     // implement Injector interface

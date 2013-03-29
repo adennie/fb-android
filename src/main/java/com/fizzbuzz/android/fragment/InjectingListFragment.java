@@ -21,6 +21,7 @@ public class InjectingListFragment
     private ObjectGraph mObjectGraph;
 
     public void onAttach(Activity activity) {
+        super.onAttach(activity);
 
         // make sure it's the first time through
         if (mObjectGraph == null) {

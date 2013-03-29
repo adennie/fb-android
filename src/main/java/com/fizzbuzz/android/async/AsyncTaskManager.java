@@ -1,28 +1,21 @@
 package com.fizzbuzz.android.async;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.inject.Inject;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import android.app.Activity;
-
 import com.fizzbuzz.android.activity.ActivityEvents.ActivityDestroyedEvent;
 import com.fizzbuzz.android.activity.ActivityEvents.ActivityPausedEvent;
 import com.fizzbuzz.android.activity.ActivityEvents.ActivityResumedEvent;
-import com.fizzbuzz.android.fragment.FragmentEvents.ActivityAttachedEvent;
-import com.fizzbuzz.android.fragment.FragmentEvents.ActivityDetachedEvent;
-import com.fizzbuzz.android.fragment.FragmentEvents.FragmentDestroyedEvent;
-import com.fizzbuzz.android.fragment.FragmentEvents.FragmentPausedEvent;
-import com.fizzbuzz.android.fragment.FragmentEvents.FragmentResumedEvent;
+import com.fizzbuzz.android.fragment.FragmentEvents.*;
 import com.squareup.otto.OttoBus;
 import com.squareup.otto.Subscribe;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.inject.Inject;
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
 /*
  * Manages async tasks on behalf of a given controlling object. The controlling object should create an AsyncTaskManager
@@ -60,7 +53,9 @@ public class AsyncTaskManager
     public AsyncTaskManager() {
     }
 
-    @SuppressWarnings("unused")
+    // we can't just get the lifecycle bus via constructor parameter injection, because an AsyncTaskManager
+    // can work with both fragments and activities.  So it needs to be connected explicitly by the controlling
+    // activity or fragment.
     public void connectToLifecycleBus(OttoBus lifecycleBus) {
         new LifecycleEventHandler(lifecycleBus, this);
     }
