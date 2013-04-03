@@ -37,10 +37,6 @@ public interface AsyncTaskControllee {
      */
     public void cancelTask();
 
-    public void onUiPause();
-
-    public void onUiResume();
-
     public void onActivityAttached(Activity activity);
 
     public void onActivityDetached();

@@ -1,10 +1,8 @@
 package com.fizzbuzz.android.async;
 
 import android.app.Activity;
-import com.fizzbuzz.android.activity.ActivityEvents.ActivityDestroyedEvent;
-import com.fizzbuzz.android.activity.ActivityEvents.ActivityPausedEvent;
-import com.fizzbuzz.android.activity.ActivityEvents.ActivityResumedEvent;
-import com.fizzbuzz.android.fragment.FragmentEvents.*;
+import com.fizzbuzz.android.activity.ActivityEvents;
+import com.fizzbuzz.android.fragment.FragmentEvents;
 import com.squareup.otto.OttoBus;
 import com.squareup.otto.Subscribe;
 import org.slf4j.Logger;
@@ -40,14 +38,16 @@ import static com.google.common.base.Preconditions.checkState;
  * If the controlling object is a retained Fragment, in addition to the above,
  * - call onActivityAttached from the fragment's onAttach
  * - call onActivityDetached from the fragment's onDetach
- * Conformance to these rules can be accomplished by having the controlling Activity or Fragment inherit from
- * Bus*Activity or Bus*Fragment and registering an ActivityEventHandler or FragmentEventHandler with the bus.
+ * Adherence to these rules can be accomplished by having the controlling Activity or Fragment inherit from
+ * Bus*Activity or Bus*Fragment and calling connectToLifecycleBus.
  */
 public class AsyncTaskManager
         implements AsyncTaskController {
+    private final Logger mLogger = LoggerFactory.getLogger(LoggingManager.TAG);
     private final Map<AsyncTaskControllee, Boolean> mManagedTasks = new HashMap<AsyncTaskControllee, Boolean>();
     private ProgressListener mDefaultProgressListener;
     private boolean mDefaultProgressListenerInUse = false;
+    private OttoBus mLifecycleBus;
 
     @Inject
     public AsyncTaskManager() {
@@ -57,7 +57,8 @@ public class AsyncTaskManager
     // can work with both fragments and activities.  So it needs to be connected explicitly by the controlling
     // activity or fragment.
     public void connectToLifecycleBus(OttoBus lifecycleBus) {
-        new LifecycleEventHandler(lifecycleBus, this);
+        mLifecycleBus = lifecycleBus;
+        mLifecycleBus.register(this);
     }
 
     public void setDefaultProgressListener(ProgressListener newDefaultListener) {
@@ -80,20 +81,32 @@ public class AsyncTaskManager
     // use this variation when you want the managed task to use the manager's default progress listener
     public void execute(final AsyncTaskHelper<?> task) {
         checkNotNull(task, "task");
-        manage(task);
+        checkState(!mManagedTasks.containsKey(task), "attempt to manage AsyncTaskHelper that is already being managed");
+
+        mManagedTasks.put(task, true);
+
+        synchronized (this) {
+            if (mDefaultProgressListener != null && !mDefaultProgressListenerInUse) {
+                task.setProgressListener(mDefaultProgressListener);
+                mDefaultProgressListenerInUse = true;
+            }
+        }
+        task.setController(this);
         task.execute();
     }
 
     // use this variation when you want the managed task to use a non-default progress listener, or no listener
     public void execute(final AsyncTaskHelper<?> task,
-            final ProgressListener progressListener) {
+                        final ProgressListener progressListener) {
         checkNotNull(task, "task");
-        manage(task, progressListener);
-        task.execute();
-    }
+        checkState(!mManagedTasks.containsKey(task), "attempt to manage AsyncTaskHelper that is already being managed");
 
-    public ProgressListener getDefaultProgressListener() {
-        return mDefaultProgressListener;
+        mManagedTasks.put(task, false);
+
+        if (progressListener != null)
+            task.setProgressListener(progressListener);
+        task.setController(this);
+        task.execute();
     }
 
     @Override
@@ -106,91 +119,60 @@ public class AsyncTaskManager
         // if there is a default progress listener and that task was using it, connect the default listener to the next
         // task that wants to use it
         if (mDefaultProgressListener != null && task.getProgressListener() == mDefaultProgressListener) {
-            mDefaultProgressListenerInUse = false;
-            assignDefaultProgressListenerToTask();
+            synchronized (this) {
+                mDefaultProgressListenerInUse = false;
+                // assign the default listener to the first task encountered that requested to use it
+                for (AsyncTaskControllee t : mManagedTasks.keySet()) {
+                    // if whomever submitted the task to be managed asked that it use the default progress listener, and
+                    // the task is currently running
+                    if (mManagedTasks.get(t) && task.isRunning()) {
+                        t.setProgressListener(mDefaultProgressListener);
+                        mDefaultProgressListenerInUse = true;
+                        break;
+                    }
+                }
+            }
         }
     }
 
-    // coordinate with the Activity lifecycle
+    @Subscribe
+    public void onActivityDestroyed(final ActivityEvents.ActivityDestroyedEvent event) {
+        onDestroy();
+        mLifecycleBus.unregister(this);
+    }
 
-    public void onActivityAttached(Activity activity) {
-        if (mDefaultProgressListener != null)
-            mDefaultProgressListener.onActivityAttached(activity);
+    // handle Fragment lifecycle events
+    @Subscribe
+    public void onActivityAttached(final FragmentEvents.ActivityAttachedEvent event) {
+        onActivityAttached(event.getFragment().getActivity());
+    }
 
+    @Subscribe
+    public void onActivityDetached(final FragmentEvents.ActivityDetachedEvent event) {
+        onActivityDetached();
+    }
+
+    @Subscribe
+    public void onFragmentDestroyed(final FragmentEvents.FragmentDestroyedEvent event) {
+        onDestroy();
+        mLifecycleBus.unregister(this);
+    }
+
+    private void onActivityAttached(Activity activity) {
         for (AsyncTaskControllee task : mManagedTasks.keySet()) {
             task.onActivityAttached(activity);
         }
-
     }
 
-    public void onUiResume() {
-        for (AsyncTaskControllee task : mManagedTasks.keySet()) {
-            task.onUiResume();
-        }
-    }
-
-    public void onUiPause() {
-        for (AsyncTaskControllee task : mManagedTasks.keySet()) {
-            task.onUiPause();
-        }
-    }
-
-    public void onActivityDetached() {
+    private void onActivityDetached() {
         for (AsyncTaskControllee task : mManagedTasks.keySet()) {
             // Note: each task is responsible for calling onActivityDetached on its progress listener, if it has one.
             task.onActivityDetached();
         }
-
-        if (mDefaultProgressListener != null)
-            mDefaultProgressListener.onActivityDetached();
     }
 
-    public void onDestroy() {
+    private void onDestroy() {
         cancelAsyncTasks();
-    }
-
-    // use this variation when you want the managed task to use the manager's default progress listener
-    private void manage(final AsyncTaskControllee task) {
-        checkNotNull(task, "task");
-        checkState(!mManagedTasks.containsKey(task), "attempt to manage AsyncTaskHelper that is already being managed");
-
-        mManagedTasks.put(task, true);
-
-        if (mDefaultProgressListener != null && !mDefaultProgressListenerInUse) {
-            task.setProgressListener(mDefaultProgressListener);
-            mDefaultProgressListenerInUse = true;
-        }
-
-        task.setController(this);
-    }
-
-    // use this variation when you want the managed task to use a non-default progress listener, or no listener
-    private void manage(final AsyncTaskControllee task,
-            final ProgressListener progressListener) {
-        checkNotNull(task, "task");
-        checkState(!mManagedTasks.containsKey(task), "attempt to manage AsyncTaskHelper that is already being managed");
-
-        mManagedTasks.put(task, false);
-
-        if (progressListener != null)
-            task.setProgressListener(progressListener);
-        task.setController(this);
-    }
-
-    private void assignDefaultProgressListenerToTask() {
-        // if there is a default progress listener configured and it's not in use
-        if (mDefaultProgressListener != null && !mDefaultProgressListenerInUse) {
-            // iterate over the managed tasks
-            for (AsyncTaskControllee task : mManagedTasks.keySet()) {
-                // if whomever submitted the task to be managed asked that it used the default progress listener, and
-                // the task is currently running
-                if (mManagedTasks.get(task) && task.isRunning()) {
-                    task.setProgressListener(mDefaultProgressListener);
-                    mDefaultProgressListenerInUse = true;
-                    break;
-                }
-            }
-        }
     }
 
     private void cancelAsyncTasks() {
@@ -198,88 +180,5 @@ public class AsyncTaskManager
             task.cancelTask();
         }
         mManagedTasks.clear();
-    }
-
-    public static class LifecycleEventHandler {
-        private final Logger mLogger = LoggerFactory.getLogger(LoggingManager.TAG);
-        private final OttoBus mLifecycleBus;
-        private final AsyncTaskManager mAsyncTaskManager;
-
-        private LifecycleEventHandler(OttoBus lifecycleBus,
-                AsyncTaskManager asyncTaskMgr) {
-
-            // validate input
-            mAsyncTaskManager = checkNotNull(asyncTaskMgr, "asyncTaskMgr");
-            mLifecycleBus = checkNotNull(lifecycleBus, "lifecycleBus");
-            mLifecycleBus.register(this);
-        }
-
-        // handle Activity lifecycle events
-        @Subscribe
-        public void onActivityResumed(final ActivityResumedEvent event) {
-            mLogger.debug("AsyncTaskManager$ActivityEventHandler.onActivityResumed: for activity {}",
-                    event.getActivity());
-            checkState(mAsyncTaskManager != null, "no AsyncTaskManager attached");
-            mAsyncTaskManager.onUiResume();
-        }
-
-        @Subscribe
-        public void onActivityPaused(final ActivityPausedEvent event) {
-            mLogger.debug("AsyncTaskManager$ActivityEventHandler.onActivityPaused: for activity {}",
-                    event.getActivity());
-            checkState(mAsyncTaskManager != null, "no AsyncTaskManager attached");
-            mAsyncTaskManager.onUiPause();
-        }
-
-        @Subscribe
-        public void onActivityDestroyed(final ActivityDestroyedEvent event) {
-            mLogger.debug("AsyncTaskManager$ActivityEventHandler.onActivityDestroyed: for activity {}",
-                    event.getActivity());
-            checkState(mAsyncTaskManager != null, "no AsyncTaskManager attached");
-            mAsyncTaskManager.onDestroy();
-            mLifecycleBus.unregister(this);
-        }
-
-        // handle Fragment lifecycle events
-        @Subscribe
-        public void onActivityAttached(final ActivityAttachedEvent event) {
-            mLogger.debug("AsyncTaskManager$FragmentEventHandler.onActivityAttached: for fragment {}",
-                    event.getFragment());
-            checkState(mAsyncTaskManager != null, "no AsyncTaskManager attached");
-            mAsyncTaskManager.onActivityAttached(event.getFragment().getActivity());
-        }
-
-        @Subscribe
-        public void onFragmentResumed(final FragmentResumedEvent event) {
-            mLogger.debug("AsyncTaskManager$FragmentEventHandler.onFragmentResumed: for fragment {}",
-                    event.getFragment());
-            checkState(mAsyncTaskManager != null, "no AsyncTaskManager attached");
-            mAsyncTaskManager.onUiResume();
-        }
-
-        @Subscribe
-        public void onFragmentPaused(final FragmentPausedEvent event) {
-            mLogger.debug("AsyncTaskManager$FragmentEventHandler.onFragmentPaused: for fragment {}",
-                    event.getFragment());
-            checkState(mAsyncTaskManager != null, "no AsyncTaskManager attached");
-            mAsyncTaskManager.onUiPause();
-        }
-
-        @Subscribe
-        public void onActivityDetached(final ActivityDetachedEvent event) {
-            mLogger.debug("AsyncTaskManager$FragmentEventHandler.onActivityDetached: for fragment {}",
-                    event.getFragment());
-            checkState(mAsyncTaskManager != null, "no AsyncTaskManager attached");
-            mAsyncTaskManager.onActivityDetached();
-        }
-
-        @Subscribe
-        public void onFragmentDestroyed(final FragmentDestroyedEvent event) {
-            mLogger.debug("AsyncTaskManager$FragmentEventHandler.onFragmentDestroyed: for fragment {}",
-                    event.getFragment());
-            checkState(mAsyncTaskManager != null, "no AsyncTaskManager attached");
-            mAsyncTaskManager.onDestroy();
-            mLifecycleBus.unregister(this);
-        }
     }
 }

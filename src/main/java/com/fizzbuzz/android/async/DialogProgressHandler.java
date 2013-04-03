@@ -1,8 +1,6 @@
 package com.fizzbuzz.android.async;
 
-import android.app.Activity;
 import android.support.v4.app.FragmentActivity;
-
 import com.fizzbuzz.android.fragment.ProgressDialogFragment;
 
 // This class mediates between an object that reports its progress via the ProgressListener interface and a DialogProgressFragment that displays
@@ -10,7 +8,6 @@ import com.fizzbuzz.android.fragment.ProgressDialogFragment;
 public class DialogProgressHandler
         implements ProgressListener
 {
-    private FragmentActivity mActivity;
     private final ProgressDialogFragment mProgressDialogFragment;
 
     // for an indeterminate progress dialog
@@ -25,11 +22,10 @@ public class DialogProgressHandler
     }
 
     public DialogProgressHandler(final FragmentActivity activity,
-            final boolean indeterminate,
+            final boolean isIndeterminate,
             final int style) {
-        mActivity = activity;
-        mProgressDialogFragment = ProgressDialogFragment.newInstance(indeterminate, style);
-        mProgressDialogFragment.show(mActivity.getSupportFragmentManager(), "progress");
+        mProgressDialogFragment = ProgressDialogFragment.newInstance(isIndeterminate, style);
+        mProgressDialogFragment.show(activity.getSupportFragmentManager(), "progress");
     }
 
     @Override
@@ -49,24 +45,6 @@ public class DialogProgressHandler
     public void onEndProgress() {
         mProgressDialogFragment.onEndProgress();
         mProgressDialogFragment.dismiss();
-    }
-
-    @Override
-    public void onUiPause() {
-    }
-
-    @Override
-    public void onUiResume() {
-    }
-
-    @Override
-    public void onActivityAttached(Activity activity) {
-        mActivity = (FragmentActivity) activity;
-    }
-
-    @Override
-    public void onActivityDetached() {
-        mActivity = null;
     }
 
 }

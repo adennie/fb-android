@@ -1,14 +1,13 @@
 package com.fizzbuzz.android.async;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Build;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * AsyncTaskHelper is an extension of {@link AsyncTask} that
@@ -118,7 +117,6 @@ public class AsyncTaskHelper<Result>
      * is because the AsyncTaskController is responsible for assigning the AsyncProgressListener to the
      * AsyncTaskControllee objects that it manages.
      * 
-     * @param activity the current activity context
      * @param job an object implementing the {@link AsyncTaskJob} interface, representing the job to be
      *            executed on the background thread
      * @param resultProcessor a "function object" implementing the {@link AsyncTaskResultProcessor} interface,
@@ -287,32 +285,17 @@ public class AsyncTaskHelper<Result>
         cancel(true);
     }
 
-    @Override
-    public void onUiPause() {
-        if (mProgressListener != null)
-            mProgressListener.onUiPause();
-    }
-
-    @Override
-    public void onUiResume() {
-        if (mProgressListener != null)
-            mProgressListener.onUiResume();
-    }
 
     @Override
     public void onActivityAttached(Activity activity) {
         if (mResultProcessor != null)
             mResultProcessor.onActivityAttached(activity);
-        if (mProgressListener != null)
-            mProgressListener.onActivityAttached(activity);
     }
 
     @Override
     public void onActivityDetached() {
         if (mResultProcessor != null)
             mResultProcessor.onActivityDetached();
-        if (mProgressListener != null)
-            mProgressListener.onActivityDetached();
     }
 
     // implement the AsyncTaskJobListener interface

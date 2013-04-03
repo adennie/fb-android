@@ -1,7 +1,5 @@
 package com.fizzbuzz.android.async;
 
-import android.app.Activity;
-
 public interface ProgressListener {
 
     /**
@@ -28,18 +26,4 @@ public interface ProgressListener {
      * Notifies an interested party that a task has completed
      */
     void onEndProgress();
-
-    void onUiPause();
-
-    void onUiResume();
-
-    /*
-     * Progress Listener's may or may not have dependencies on Activity instances. Since Activities have a habit of going away (e.g. during device
-     * rotations) the listeners need to be notified when that happens, so they know to release the old Activity when it goes away and use the new one
-     * when it is attached. Note that since a given instance of a listener may be assigned to more than one AsyncTaskHelper, its onActivityAttached
-     * and onActivityDetached method may be invoked multiple times for the same occurrence of the activity being attached or detached.
-     */
-    void onActivityAttached(Activity activity);
-
-    void onActivityDetached();
 }
