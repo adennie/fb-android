@@ -12,7 +12,7 @@ import java.util.List;
 // subclasses of Activity
 
 public class BusPreferenceActivity
-        extends InjectingPreferenceActivity
+        extends BasePreferenceActivity
         implements ActivityLifecycle, BusManagingActivity {
     @Inject
     BusActivityHelper mBusHelper;

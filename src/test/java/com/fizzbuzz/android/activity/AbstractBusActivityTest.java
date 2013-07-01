@@ -1,25 +1,21 @@
 package com.fizzbuzz.android.activity;
 
 import android.app.Activity;
-import android.app.Application;
-import android.content.Intent;
-import com.fizzbuzz.android.application.BusApplication;
-import com.fizzbuzz.android.injection.Injector;
+import com.fizzbuzz.android.BusApplicationTestRunner;
+import com.fizzbuzz.android.dagger.Injector;
 import com.squareup.otto.OttoBus;
 import com.squareup.otto.Subscribe;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.model.InitializationError;
-import org.robolectric.Robolectric;
-import org.robolectric.RobolectricTestRunner;
+import org.robolectric.util.ActivityController;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 
-@RunWith(AbstractBusActivityTest.LocalTestRunner.class)
+@RunWith(BusApplicationTestRunner.class)
 public abstract class AbstractBusActivityTest<T extends Activity & Injector & BusManagingActivity> {
 
     private T mActivity1;
@@ -27,35 +23,18 @@ public abstract class AbstractBusActivityTest<T extends Activity & Injector & Bu
 
     @Before
     public void setUp() {
-        Application app = Robolectric.application;
-        app.onCreate();
-
-        Intent intent = new Intent();
-        intent.setClassName("com.fizzbuzz.android", "com.fizzbuzz.android.BusActivity");
-
-        mActivity1 = createTestActivity();
-        mActivity1.setIntent(intent);
-
-        mActivity2 = createTestActivity();
-        mActivity2.setIntent(intent);
-
+        mActivity1 = getActivityController().create().get();
+        mActivity2 = getActivityController().create().get();
     }
 
     @Test
     public void testDistinctBusActivitiesGetInjectedWithDistinctActivityBuses() {
-        // initialize two BusActivities
-        ((ActivityLifecycle)mActivity1).onCreate(null);
-        ((ActivityLifecycle)mActivity2).onCreate(null);
-
         assertThat(mActivity1.getActivityBus()).isNotEqualTo(mActivity2.getActivityBus());
     }
 
     @Test
     public void testDistinctBusActivitiesPostEventsToTheirOwnDistinctLowestLevelBuses() {
 
-        // initialize two BusActivities
-        ((ActivityLifecycle)mActivity1).onCreate(null);
-        ((ActivityLifecycle)mActivity2).onCreate(null);
 
         // create and register two event handlers, one for each activity's bus
         ActivityLifecycleEventHandler handler1 = new ActivityLifecycleEventHandler();
@@ -75,16 +54,11 @@ public abstract class AbstractBusActivityTest<T extends Activity & Injector & Bu
 
     @Test
     public void testDistinctBusActivitiesShareACommonApplicationBus() {
-        // initialize two BusActivities
-        ((ActivityLifecycle)mActivity1).onCreate(null);
-        ((ActivityLifecycle)mActivity2).onCreate(null);
-
         assertThat(mActivity1.getApplicationBus()).isEqualTo(mActivity2.getApplicationBus());
     }
 
     @Test
     public void testVisibilityScopedAppBusAutoRegistersAndDeregistersProperly() {
-        ((ActivityLifecycle)mActivity1).onCreate(null);
 
         OttoBus visScopedAppBus = mActivity1.getVisibilityScopedApplicationBus();
         TestEventHandler handler = new TestEventHandler();
@@ -140,7 +114,7 @@ public abstract class AbstractBusActivityTest<T extends Activity & Injector & Bu
         assertThat(handler.eventWasReceived()).isFalse();
     }
 
-    abstract protected T createTestActivity();
+    abstract protected ActivityController<T> getActivityController();
 
     public static class TestEvent {
     }
@@ -167,19 +141,6 @@ public abstract class AbstractBusActivityTest<T extends Activity & Injector & Bu
         @Subscribe
         public void onTestEvent(final TestEvent event) {
             mReceivedEvents.add(event);
-        }
-    }
-
-    public static class LocalTestRunner
-            extends RobolectricTestRunner {
-
-        public LocalTestRunner(Class<?> testClass) throws InitializationError {
-            super(testClass);
-        }
-
-        @Override
-        protected Application createApplication() {
-            return new BusApplication();
         }
     }
 }

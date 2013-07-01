@@ -1,23 +1,14 @@
 package com.fizzbuzz.android.socialize;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import android.app.Activity;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
-
 import com.fizzbuzz.android.fragment.FragmentEvents.ActivityCreatedEvent;
 import com.fizzbuzz.android.fragment.FragmentEvents.FragmentPausedEvent;
 import com.fizzbuzz.android.fragment.FragmentEvents.FragmentResumedEvent;
 import com.fizzbuzz.android.fragment.FragmentEvents.FragmentViewDestroyedEvent;
 import com.fizzbuzz.android.util.NetworkHelper;
-import com.fizzbuzz.android.util.VersionedStrictModeWrapper;
 import com.socialize.Socialize;
 import com.socialize.UserUtils;
 import com.socialize.entity.Entity;
@@ -32,11 +23,21 @@ import com.socialize.ui.actionbar.OnActionBarEventListener;
 import com.socialize.ui.comment.LinkifyCommentViewActionListener;
 import com.squareup.otto.OttoBus;
 import com.squareup.otto.Subscribe;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.inject.Inject;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /*
  * A helper class to facilitate working with a Socialize ActionBar
  */
 public class SocializeActionBarHelper {
+    @Inject com.fizzbuzz.android.util.StrictModeWrapper mStrictMode;
+
     private final Logger mLogger = LoggerFactory.getLogger(LoggingManager.TAG);
     private ActionBarView mActionBarView;
 
@@ -57,7 +58,7 @@ public class SocializeActionBarHelper {
             final int layoutResId,
             final OttoBus bus) {
         if (NetworkHelper.isConnected(context) && SocializeActionBarHelper.isSocializeSupported(context)) {
-            mActionBarView = (ActionBarView) VersionedStrictModeWrapper.inflateWithStrictModeOverride(
+            mActionBarView = (ActionBarView) mStrictMode.inflateWithStrictModeOverride(
                     inflater,
                     layoutResId, null, false);
             actionBarFrame.addView(mActionBarView);

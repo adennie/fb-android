@@ -1,11 +1,18 @@
 package com.fizzbuzz.android.activity;
 
-import android.app.Activity;
 import android.os.Bundle;
-import com.fizzbuzz.android.activity.ActivityEvents.*;
-import com.fizzbuzz.android.activity.InjectingActivityModule.ActivityScoped;
+import com.fizzbuzz.android.activity.ActivityEvents.ActivityCreatedEvent;
+import com.fizzbuzz.android.activity.ActivityEvents.ActivityDestroyedEvent;
+import com.fizzbuzz.android.activity.ActivityEvents.ActivityInstanceStateRestoredEvent;
+import com.fizzbuzz.android.activity.ActivityEvents.ActivityInstanceStateSavedEvent;
+import com.fizzbuzz.android.activity.ActivityEvents.ActivityPausedEvent;
+import com.fizzbuzz.android.activity.ActivityEvents.ActivityRestartedEvent;
+import com.fizzbuzz.android.activity.ActivityEvents.ActivityResumedEvent;
+import com.fizzbuzz.android.activity.ActivityEvents.ActivityStartedEvent;
+import com.fizzbuzz.android.activity.ActivityEvents.ActivityStoppedEvent;
 import com.fizzbuzz.android.application.BusApplication;
-import com.fizzbuzz.android.injection.Injector;
+import com.fizzbuzz.android.dagger.InjectingActivityModule;
+import com.fizzbuzz.android.dagger.Injector;
 import com.fizzbuzz.ottoext.GuaranteedDeliveryBus;
 import com.fizzbuzz.ottoext.GuaranteedDeliveryOttoBus;
 import com.fizzbuzz.ottoext.ScopedGuaranteedDeliveryBus;
@@ -27,9 +34,9 @@ public class BusActivityHelper {
     // The activation scope is the time between this Activity's onCreate and its onDestroy methods. This is sort of an
     // insurance policy that makes sure all objects registered to the activity bus get unregistered in onDestroy,
     // thereby eliminating potential extraneous references to the Activity that would keep it from being GC'ed.
-    @Inject @ActivityScoped ScopedGuaranteedDeliveryBus mActivityBus;
+    @Inject @InjectingActivityModule.Activity ScopedGuaranteedDeliveryBus mActivityBus;
 
-    private Activity mActivity;
+    private android.app.Activity mActivity;
 
     // mVisibilityScopedApplicationBus wraps the application-scoped bus, but is activated/deactivated as the
     // Activity gets resumed/paused, so that registered objects don't receive events posted to the app-scope bus
@@ -51,7 +58,7 @@ public class BusActivityHelper {
         return mActivityBus;
     }
 
-    void onCreate(final Activity activity) {
+    void onCreate(final android.app.Activity activity) {
         mActivity = activity;
 
         // inject mActivityBus using the activity-scope object graph

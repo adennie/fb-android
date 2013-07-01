@@ -1,14 +1,13 @@
 package com.fizzbuzz.android.flurry;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.fizzbuzz.android.activity.ActivityEvents.ActivityDestroyedEvent;
 import com.fizzbuzz.android.activity.ActivityEvents.ActivityStartedEvent;
 import com.fizzbuzz.android.activity.ActivityEvents.ActivityStoppedEvent;
 import com.flurry.android.FlurryAgent;
 import com.squareup.otto.OttoBus;
 import com.squareup.otto.Subscribe;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /*
  * A helper class for Flurry integration. Call init() at application startup time, and in each activity's onCreate(),

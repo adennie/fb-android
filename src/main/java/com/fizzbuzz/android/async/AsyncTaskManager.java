@@ -5,8 +5,6 @@ import com.fizzbuzz.android.activity.ActivityEvents;
 import com.fizzbuzz.android.fragment.FragmentEvents;
 import com.squareup.otto.OttoBus;
 import com.squareup.otto.Subscribe;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.util.HashMap;
@@ -29,7 +27,7 @@ import static com.google.common.base.Preconditions.checkState;
  * The rules for using an AsyncTaskManager:
  * If the controlling object is an Activity,
  * - call onUiResume from the activity's onResume
- * - call onUiPause from the actvitity's onPause
+ * - call onUiPause from the activity's onPause
  * - call onDestroy from the activity's onDestroy
  * If the controlling object is a non-retained Fragment
  * - call onUiResume from the fragment's onResume
@@ -43,7 +41,6 @@ import static com.google.common.base.Preconditions.checkState;
  */
 public class AsyncTaskManager
         implements AsyncTaskController {
-    private final Logger mLogger = LoggerFactory.getLogger(LoggingManager.TAG);
     private final Map<AsyncTaskControllee, Boolean> mManagedTasks = new HashMap<AsyncTaskControllee, Boolean>();
     private ProgressListener mDefaultProgressListener;
     private boolean mDefaultProgressListenerInUse = false;

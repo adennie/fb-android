@@ -5,7 +5,7 @@ import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import com.fizzbuzz.android.fragment.FragmentEvents.FragmentViewDestroyedEvent;
 import com.fizzbuzz.android.util.NetworkHelper;
-import com.fizzbuzz.android.util.VersionedStrictModeWrapper;
+import com.fizzbuzz.android.util.StrictModeWrapper;
 import com.google.ads.AdView;
 import com.squareup.otto.OttoBus;
 import com.squareup.otto.Subscribe;
@@ -23,9 +23,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class AdMobHelper {
 
-    @Inject
-    public AdMobHelper() {
-    }
+    @Inject StrictModeWrapper mStrictMode;
 
     public void createAdView(final Context context,
             final ViewGroup viewGroup,
@@ -37,7 +35,7 @@ public class AdMobHelper {
         if (NetworkHelper.isConnected(context)) {
             // create an AdView
             if (viewGroup != null) {
-                AdView adView = (AdView) VersionedStrictModeWrapper.inflateWithStrictModeOverride(inflater,
+                AdView adView = (AdView) mStrictMode.inflateWithStrictModeOverride(inflater,
                         layoutResId, null, false);
                 viewGroup.addView(adView);
 

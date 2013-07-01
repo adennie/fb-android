@@ -2,7 +2,6 @@ package com.fizzbuzz.android.fragment;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.view.View;
 import com.fizzbuzz.android.fragment.FragmentEvents.ActivityAttachedEvent;
 import com.fizzbuzz.android.fragment.FragmentEvents.ActivityCreatedEvent;
@@ -15,8 +14,8 @@ import com.fizzbuzz.android.fragment.FragmentEvents.FragmentStartedEvent;
 import com.fizzbuzz.android.fragment.FragmentEvents.FragmentStoppedEvent;
 import com.fizzbuzz.android.fragment.FragmentEvents.FragmentViewCreatedEvent;
 import com.fizzbuzz.android.fragment.FragmentEvents.FragmentViewDestroyedEvent;
-import com.fizzbuzz.android.fragment.InjectingFragmentModule.FragmentScoped;
-import com.fizzbuzz.android.injection.Injector;
+import com.fizzbuzz.android.dagger.InjectingFragmentModule;
+import com.fizzbuzz.android.dagger.Injector;
 import com.fizzbuzz.ottoext.GuaranteedDeliveryOttoBus;
 import com.fizzbuzz.ottoext.ScopedGuaranteedDeliveryBus;
 import com.squareup.otto.Produce;
@@ -25,7 +24,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkState;
@@ -37,8 +35,8 @@ public class BusFragmentHelper {
     // The activation scope is the time between this Fragment's onCreate and its onDestroy methods. This is sort of an
     // insurance policy that makes sure all objects registered to the fragment bus get unregistered in onDestroy,
     // thereby eliminating potential extraneous references to the Fragment that would keep it from being GC'ed.
-    @Inject @FragmentScoped ScopedGuaranteedDeliveryBus mFragmentBus;
-    private Fragment mFragment;
+    @Inject @InjectingFragmentModule.Fragment ScopedGuaranteedDeliveryBus mFragmentBus;
+    private android.support.v4.app.Fragment mFragment;
     private boolean mIsFirstAttach = true;
     private Activity mActivity;
     private boolean mIsCreated = false; // indicates whether we've been through onCreate() yet.
@@ -47,7 +45,7 @@ public class BusFragmentHelper {
         return mFragmentBus;
     }
 
-    public void onAttach(Fragment fragment, Activity activity) {
+    public void onAttach(android.support.v4.app.Fragment fragment, Activity activity) {
         if (mIsFirstAttach) {
             mFragment = fragment;
 

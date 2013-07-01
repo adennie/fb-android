@@ -7,9 +7,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import com.fizzbuzz.android.activity.BusManagingActivity;
 import com.fizzbuzz.android.application.BusApplication;
+import com.fizzbuzz.android.dagger.InjectingFragment;
 import com.fizzbuzz.ottoext.GuaranteedDeliveryOttoBus;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.util.List;
@@ -28,7 +27,6 @@ public class BusFragment
 
     private boolean mIsFirstAttach = true;
     private boolean mIsDestroyed = false;
-    private final Logger mLogger = LoggerFactory.getLogger(LoggingManager.TAG);
 
     // implement BusManagingFragment interface
 

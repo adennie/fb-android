@@ -1,23 +1,25 @@
 package com.fizzbuzz.android.gcm;
 
-import static com.fizzbuzz.android.util.VersionedStrictModeWrapper.Permission.ALLOW_DISK_READ;
-
-import java.util.concurrent.Callable;
-
+import android.content.Context;
+import android.content.pm.ApplicationInfo;
+import com.fizzbuzz.android.dagger.InjectingApplication.InjectingApplicationModule.Application;
+import com.fizzbuzz.android.util.StrictModeWrapper;
+import com.google.android.gcm.GCMRegistrar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import android.content.Context;
-import android.content.pm.ApplicationInfo;
+import javax.inject.Inject;
+import java.util.concurrent.Callable;
 
-import com.fizzbuzz.android.util.VersionedStrictModeWrapper;
-import com.google.android.gcm.GCMRegistrar;
+import static com.fizzbuzz.android.util.StrictModeWrapper.Permission.ALLOW_DISK_READ;
 
 public class GcmRegistrationHelper {
     private final Logger mLogger = LoggerFactory.getLogger(LoggingManager.TAG);
-    private final Context mAppContext;
+    Context mAppContext;
+    @Inject StrictModeWrapper mStrictMode;
 
-    public GcmRegistrationHelper(Context appContext) {
+    @Inject
+    public GcmRegistrationHelper(@Application Context appContext) {
         mAppContext = appContext;
     }
 
@@ -45,7 +47,7 @@ public class GcmRegistrationHelper {
     }
 
     public boolean isRegistered() {
-        return VersionedStrictModeWrapper.callWithStrictModeOverride(
+        return mStrictMode.callWithStrictModeOverride(
                 ALLOW_DISK_READ,
                 new Callable<Boolean>() {
                     @Override

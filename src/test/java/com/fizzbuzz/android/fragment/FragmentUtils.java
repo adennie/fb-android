@@ -6,9 +6,9 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 
 public class FragmentUtils {
-    public static void startFragment(Fragment fragment)
+    public static void startFragment(FragmentActivity activity, Fragment fragment)
     {
-        FragmentManager fragmentManager = new FragmentActivity().getSupportFragmentManager();
+        FragmentManager fragmentManager = activity.getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         fragmentTransaction.add(fragment, null);
         fragmentTransaction.commit();

@@ -11,7 +11,7 @@ import java.util.List;
 // everything to BusActivityHelper, which encapsulates common implementation logic for reuse by other subclasses of
 // Activity
 public class BusActivity
-        extends InjectingActivity
+        extends BaseActivity
         implements ActivityLifecycle, BusManagingActivity {
     @Inject
     BusActivityHelper mBusHelper;

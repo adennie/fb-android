@@ -1,7 +1,7 @@
 package com.fizzbuzz.android.fragment;
 
 import com.fizzbuzz.android.activity.BusActivityModule;
-import com.fizzbuzz.android.fragment.InjectingFragmentModule.FragmentScoped;
+import com.fizzbuzz.android.dagger.InjectingFragmentModule;
 import com.fizzbuzz.ottoext.GuaranteedDeliveryBus;
 import com.fizzbuzz.ottoext.MainThreadBus;
 import com.fizzbuzz.ottoext.ScopedGuaranteedDeliveryBus;
@@ -12,29 +12,30 @@ import dagger.Provides;
 import javax.inject.Singleton;
 
 @Module(includes = BusActivityModule.class,
-        entryPoints = {BusFragment.class,
+        complete=false,
+        injects = {BusFragment.class,
                 BusFragmentHelper.class,
                 BusListFragment.class})
 public class BusFragmentModule {
 
     @Singleton
     @Provides
-    @FragmentScoped
+    @InjectingFragmentModule.Fragment
     public MainThreadBus provideMainThreadBus() {
         return new MainThreadBus(new Bus());
     }
 
     @Singleton
     @Provides
-    @FragmentScoped
-    public GuaranteedDeliveryBus provideGuaranteedDeliveryBus(@FragmentScoped MainThreadBus bus) {
+    @InjectingFragmentModule.Fragment
+    public GuaranteedDeliveryBus provideGuaranteedDeliveryBus(@InjectingFragmentModule.Fragment MainThreadBus bus) {
         return new GuaranteedDeliveryBus(bus, GuaranteedDeliveryBus.Policy.GUARANTEE_ON_DEMAND);
     }
 
     @Singleton
     @Provides
-    @FragmentScoped
-    public ScopedGuaranteedDeliveryBus provideFragmentBus(@FragmentScoped GuaranteedDeliveryBus bus) {
+    @InjectingFragmentModule.Fragment
+    public ScopedGuaranteedDeliveryBus provideFragmentBus(@InjectingFragmentModule.Fragment GuaranteedDeliveryBus bus) {
         return new ScopedGuaranteedDeliveryBus(bus);
     }
 }

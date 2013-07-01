@@ -12,7 +12,7 @@ import java.util.List;
 // subclasses of Activity
 
 public class BusFragmentActivity
-        extends InjectingFragmentActivity
+        extends BaseFragmentActivity
         implements ActivityLifecycle, BusManagingActivity {
 
     @Inject BusActivityHelper mBusHelper;

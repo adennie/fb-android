@@ -5,13 +5,22 @@ import com.fizzbuzz.ottoext.GuaranteedDeliveryBus;
 import javax.inject.Inject;
 import java.util.List;
 
-public class BusApplication extends InjectingApplication {
+public class BusApplication extends BaseApplication {
     @Inject
-    @BusApplicationModule.ApplicationScopedMainThread
+    @BusApplicationModule.ApplicationMainThread
     GuaranteedDeliveryBus mAppBus;
 
     public GuaranteedDeliveryBus getApplicationBus() {
         return mAppBus;
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+
+        // register with the application bus (this is really for the benefit of subclasses, who may want to subscribe to events)
+        mAppBus.register(this);
+
     }
 
     @Override

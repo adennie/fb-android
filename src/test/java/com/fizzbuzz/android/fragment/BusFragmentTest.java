@@ -1,54 +1,53 @@
 package com.fizzbuzz.android.fragment;
 
-import android.app.Application;
-import android.content.Intent;
 import android.os.Bundle;
-import com.fizzbuzz.android.activity.BusActivity;
-import com.fizzbuzz.android.application.BusApplication;
-import com.fizzbuzz.android.fragment.FragmentEvents.*;
+import com.fizzbuzz.android.BusApplicationTestRunner;
+import com.fizzbuzz.android.activity.BusFragmentActivity;
+import com.fizzbuzz.android.fragment.FragmentEvents.ActivityAttachedEvent;
+import com.fizzbuzz.android.fragment.FragmentEvents.ActivityCreatedEvent;
+import com.fizzbuzz.android.fragment.FragmentEvents.ActivityDetachedEvent;
+import com.fizzbuzz.android.fragment.FragmentEvents.FragmentCreatedEvent;
+import com.fizzbuzz.android.fragment.FragmentEvents.FragmentDestroyedEvent;
+import com.fizzbuzz.android.fragment.FragmentEvents.FragmentPausedEvent;
+import com.fizzbuzz.android.fragment.FragmentEvents.FragmentResumedEvent;
+import com.fizzbuzz.android.fragment.FragmentEvents.FragmentStartedEvent;
+import com.fizzbuzz.android.fragment.FragmentEvents.FragmentStoppedEvent;
+import com.fizzbuzz.android.fragment.FragmentEvents.FragmentViewDestroyedEvent;
 import com.squareup.otto.Subscribe;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.model.InitializationError;
 import org.robolectric.Robolectric;
-import org.robolectric.RobolectricTestRunner;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 
-@RunWith(BusFragmentTest.LocalTestRunner.class)
+@RunWith(BusApplicationTestRunner.class)
 public class BusFragmentTest {
-    private BusActivity mActivity;
+    private BusFragmentActivity mActivity;
     private BusFragment mFragment;
     private FragmentLifecycleEventHandler mHandler;
 
     @Before
     public void setUp() {
-        Application app = Robolectric.application;
-        app.onCreate();
-
-        Intent intent = new Intent();
-        intent.setClassName("com.fizzbuzz.android", "com.fizzbuzz.android.BusActivity");
-
-        mActivity = new BusActivity();
-        mActivity.setIntent(intent);
-        mActivity.onCreate(null);
+        mActivity = Robolectric.buildActivity(BusFragmentActivity.class).create().start().resume().get();
 
         mFragment = new BusFragment();
-        mFragment.onAttach(mActivity);
+        FragmentUtils.startFragment(mActivity, mFragment);
 
         mHandler = new FragmentLifecycleEventHandler();
     }
 
     @Test
-    public void testActivityAttachedEventProducerProducesAfterInitialAttach() {
+    public void testProducersProducesAfterFragmentStartup() {
 
         // the activity was already attached in setUp.  Register a handler to trigger the producer.
         mFragment.getFragmentBus().register(mHandler);
 
-        // producer should have produced the ActivityAttachedEvent, and nothing else
-        assertThat(mHandler.getReceivedEvents().size()).isEqualTo(1);
+        // producers should have produced an ActivityAttachedEvent, and a FragmentCreatedEvent
+        assertThat(mHandler.getReceivedEvents().size()).isEqualTo(2);
         assertThat(mHandler.getReceivedEventTypes().contains(ActivityAttachedEvent.class)).isTrue();
+        assertThat(mHandler.getReceivedEventTypes().contains(FragmentCreatedEvent.class)).isTrue();
+
     }
 
     @Test
@@ -58,27 +57,15 @@ public class BusFragmentTest {
         mFragment.onDetach();
         mFragment.getFragmentBus().register(mHandler);
 
-        // producer should not have produced
-        assertThat(mHandler.getReceivedEvents().size()).isEqualTo(0);
-    }
-
-    @Test
-    public void testFragmentCreatedEventProducerProducesAfterInitialCreate() {
-        // subsequent to onCreate, register a handler
-        mFragment.onCreate(null);
-        mFragment.getFragmentBus().register(mHandler);
-
-        // The ActivityAttachedEvent producer AND the FragmentCreatedEvent producer method should
-        // both produce.
-        assertThat(mHandler.getReceivedEvents().size()).isEqualTo(2);
-        assertThat(mHandler.getReceivedEventTypes().contains(ActivityAttachedEvent.class)).isTrue();
+        // the producer for ActivityAttachedEvent should not have produced, but the producer for FragmentCreatedEvent
+        // should have
+        assertThat(mHandler.getReceivedEvents().size()).isEqualTo(1);
         assertThat(mHandler.getReceivedEventTypes().contains(FragmentCreatedEvent.class)).isTrue();
     }
 
     @Test
     public void testFragmentCreatedEventProducerDoesNotProduceAfterDestroy() {
         // create and destroy, then register a handler
-        mFragment.onCreate(null);
         mFragment.onDestroy();
         mFragment.getFragmentBus().register(mHandler);
 
@@ -117,13 +104,15 @@ public class BusFragmentTest {
     }
 
     @Test
-    public void testOnActivityCreatedEventIsPosted() {
+    public void testActivityCreatedEventIsPosted() {
         mFragment.getFragmentBus().register(mHandler);
         mFragment.onActivityCreated(new Bundle());
 
-        // register should have produced ActivityAttachedEvent; onActivityCreated should have posted ActivityCreatedEvent
-        assertThat(mHandler.getReceivedEvents().size()).isEqualTo(2);
+        // register should have produced ActivityAttachedEvent and FragmentCreatedEvent; onActivityCreated should
+        // have posted ActivityCreatedEvent
+        assertThat(mHandler.getReceivedEvents().size()).isEqualTo(3);
         assertThat(mHandler.getReceivedEventTypes().contains(ActivityAttachedEvent.class)).isTrue();
+        assertThat(mHandler.getReceivedEventTypes().contains(FragmentCreatedEvent.class)).isTrue();
         assertThat(mHandler.getReceivedEventTypes().contains(ActivityCreatedEvent.class)).isTrue();
     }
 
@@ -182,19 +171,6 @@ public class BusFragmentTest {
         @Subscribe
         public void onFragmentDestroyed(final FragmentDestroyedEvent event) {
             mEventWasReceived = true;
-        }
-    }
-
-    public static class LocalTestRunner
-            extends RobolectricTestRunner {
-
-        public LocalTestRunner(Class<?> testClass) throws InitializationError {
-            super(testClass);
-        }
-
-        @Override
-        protected Application createApplication() {
-            return new BusApplication();
         }
     }
 }

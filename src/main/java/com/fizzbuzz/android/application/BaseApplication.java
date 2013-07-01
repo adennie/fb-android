@@ -1,14 +1,23 @@
 package com.fizzbuzz.android.application;
 
-import android.app.Application;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
-
-import com.fizzbuzz.android.persist.SharedPreferencesUtils;
+import com.fizzbuzz.android.dagger.InjectingApplication;
+import com.fizzbuzz.android.persist.SharedPrefHelper;
+import com.fizzbuzz.android.util.StrictModeWrapper;
 import com.fizzbuzz.android.util.VersionedStrictModeWrapper;
+import dagger.Module;
+import dagger.Provides;
+
+import javax.inject.Inject;
+import javax.inject.Singleton;
+import java.util.List;
 
 public abstract class BaseApplication
-        extends Application {
+        extends InjectingApplication {
+
+    @Inject StrictModeWrapper mStrictMode;
+    @Inject SharedPrefHelper mSharedPrefHelper;
 
     private static String PREF_TAG_CURRENT_APP_VERSION = "currentAppVersion";
     private static String PREF_TAG_PREVIOUS_APP_VERSION = "previousAppVersion";
@@ -19,7 +28,7 @@ public abstract class BaseApplication
 
         // debug mode stuff
         if (isDebugMode()) {
-            VersionedStrictModeWrapper.getInstance().init(this); // turn on strict mode
+            mStrictMode.init(this); // turn on strict mode
         }
 
         // make sure AsyncTask's static members get initialized on a UI thread
@@ -28,6 +37,13 @@ public abstract class BaseApplication
             Class.forName("android.os.AsyncTask");
         } catch (ClassNotFoundException e) {
         }
+    }
+
+    @Override
+    protected List<Object> getModules() {
+        List<Object> modules = super.getModules();
+        modules.add(new BaseApplicationModule(this));
+        return modules;
     }
 
     // convenience method, analogous to Application.getString
@@ -66,11 +82,11 @@ public abstract class BaseApplication
 
     private void saveVersionCodeToPref(final String prefTag,
                                        final int versionCode) {
-        SharedPreferencesUtils.setLongNoStrict(this, prefTag, versionCode);
+        mSharedPrefHelper.setLongNoStrict(this, prefTag, versionCode);
     }
 
     private int readVersionCodeFromPref(final String prefTag) {
-        return (int) SharedPreferencesUtils.getLongNoStrict(this, prefTag, -1);
+        return (int) mSharedPrefHelper.getLongNoStrict(this, prefTag, -1);
     }
 
     private int getVersionCode() {
@@ -83,4 +99,23 @@ public abstract class BaseApplication
         }
         return result;
     }
+
+    @Module(library = true,
+            includes=VersionedStrictModeWrapper.StrictModeWrapperModule.class)
+    public class BaseApplicationModule {
+        private final BaseApplication mBaseApplication;
+
+        public BaseApplicationModule(final BaseApplication baseApplication) {
+            mBaseApplication = baseApplication;
+        }
+
+        @Provides
+        @Singleton
+        public BaseApplication provideBaseApplication() {
+            return mBaseApplication;
+        }
+
+    }
+
+
 }
